@@ -11,6 +11,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@dicebear/collection": "^8.0.1",
+    "@dicebear/core": "^8.0.1",
     "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
@@ -42,6 +44,7 @@
     "@remix-run/node": "^2.9.1",
     "@remix-run/react": "^2.9.1",
     "@remix-run/serve": "^2.9.1",
+    "@unpic/react": "^0.1.14",
     "autoprefixer": "^10.4.19",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -52,6 +55,7 @@
     "husky": "^9.0.11",
     "input-otp": "^1.2.4",
     "isbot": "^4.1.0",
+    "lint-staged": "^15.2.2",
     "lucide-react": "^0.378.0",
     "next-themes": "^0.3.0",
     "postcss": "^8.4.38",
@@ -60,6 +64,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.4",
+    "react-live": "^4.1.6",
     "react-resizable-panels": "^2.0.19",
     "sonner": "^1.4.41",
     "tailwind-merge": "^2.3.0",
@@ -83,11 +88,21 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "shiki": "^1.5.1",
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,vue,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{html,css,less,ejs,json}": [
+      "prettier --write"
+    ]
   }
 }
