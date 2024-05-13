@@ -107,6 +107,9 @@ importers:
       '@remix-run/serve':
         specifier: ^2.9.1
         version: 2.9.1(typescript@5.4.5)
+      '@tabler/icons-react':
+        specifier: ^3.3.0
+        version: 3.3.0(react@18.3.1)
       '@unpic/react':
         specifier: ^0.1.14
         version: 0.1.14(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1769,6 +1772,14 @@ packages:
 
   '@shikijs/core@1.5.1':
     resolution: {integrity: sha512-xjV63pRUBvxA1LsxOUhRKLPh0uUjwBLzAKLdEuYSLIylo71sYuwDcttqNP01Ib1TZlLfO840CXHPlgUUsYFjzg==}
+
+  '@tabler/icons-react@3.3.0':
+    resolution: {integrity: sha512-Qn1Po+0gErh1zCWlaOdoVoGqeonWfSuiboYgwZBs6PIJNsj7yr3bIa4BkHmgJgtlXLT9LvCzt/RvwlgjxLfjjg==}
+    peerDependencies:
+      react: '>= 16'
+
+  '@tabler/icons@3.3.0':
+    resolution: {integrity: sha512-PLVe9d7b59sKytbx00KgeGhQG3N176Ezv8YMmsnSz4s0ifDzMWlp/h2wEfQZ0ZNe8e377GY2OW6kovUe3Rnd0g==}
 
   '@types/acorn@4.0.6':
     resolution: {integrity: sha512-veQTnWP+1D/xbxVrPC3zHnCZRjSrKfhbMUlEA43iMZLu7EsnTtkJklIuwrCPbOi8YkvDQAiW05VQQFvvz9oieQ==}
@@ -6388,6 +6399,13 @@ snapshots:
     optional: true
 
   '@shikijs/core@1.5.1': {}
+
+  '@tabler/icons-react@3.3.0(react@18.3.1)':
+    dependencies:
+      '@tabler/icons': 3.3.0
+      react: 18.3.1
+
+  '@tabler/icons@3.3.0': {}
 
   '@types/acorn@4.0.6':
     dependencies:
