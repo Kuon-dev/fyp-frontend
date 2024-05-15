@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import stylesheet from "@/tailwind.css?url";
 import type { LinksFunction } from "@remix-run/node";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -44,13 +44,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <script
-            dangerouslySetInnerHTML={{
-              __html: `window.ENV = ${JSON.stringify(
-                data.ENV
-              )}`,
-            }}
-        >
-        </script>
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        ></script>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -58,12 +55,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-
 export default function App() {
   return (
     <>
       <Toaster />
       <Outlet />
     </>
-  )
+  );
 }

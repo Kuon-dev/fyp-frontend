@@ -23,7 +23,6 @@ module.exports = {
 
   // Base config
   extends: ["eslint:recommended"],
-
   overrides: [
     // React
     {
@@ -48,6 +47,19 @@ module.exports = {
           typescript: {},
         },
       },
+      rules: {
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "off",
+        "react/display-name": "off",
+        "react/no-unescaped-entities": "off",
+        "react/no-unknown-property": "warn",
+        // "react/jsx-uses-react": "off",
+        // "react/jsx-uses-vars": "off",
+        "jsx-a11y/anchor-is-valid": "off",
+        "jsx-a11y/label-has-associated-control": "off",
+        "jsx-a11y/heading-has-content": "off",
+        "jsx-a11y/anchor-has-content": "warn",
+      },
     },
 
     // Typescript
@@ -71,6 +83,15 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+      rules: {
+        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/no-explicit-any": "warn",
+        // "@typescript-eslint/explicit-module-boundary-types": "off",
+        // "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-namespace": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+      }
     },
 
     // Node
@@ -81,4 +102,10 @@ module.exports = {
       },
     },
   ],
+  // rules: {
+  //   "no-console": "warn",
+  //   "no-unused-vars": "warn",
+  //   // react props
+  //   "react/prop-types": "off",
+  // },
 };
