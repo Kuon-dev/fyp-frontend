@@ -1,6 +1,6 @@
 import { UserAuthForm } from '@/elements/user-auth-form'
 
-export default function SignIn() {
+export default function Login() {
   return (
     <>
       <div className='container relative grid h-svh flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0'>
