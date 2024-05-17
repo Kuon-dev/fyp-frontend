@@ -1,5 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 // import { useDebounce } from '@/hooks/useDebounce';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { useMonacoStore } from "@/store/MonacoStore";
 import type { OnMount } from "@monaco-editor/react";
 import { LiveProvider, LivePreview } from "react-live";
@@ -92,21 +97,37 @@ export default function Index() {
   return (
     <div className="w-full h-full">
       <LiveProvider code={renderValue} noInline>
-        <div className="flex flex-row w-full basis-1/2">
-          {isHydrated && (
-            <Editor
-              height="100vh"
-              defaultLanguage="typescript"
-              defaultValue={editorValue}
-              beforeMount={handleEditorBeforeMount}
-              onChange={(value) => setEditorValue(value ?? "")}
-              theme="vs-dark"
-              onMount={handleEditorDidMount}
-            />
-          )}
-          <LivePreview className="w-full" />
-        </div>
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="rounded-lg border"
+        >
+          <ResizablePanel defaultSize={50}>
+            <div className="flex min-h-screen h-full items-center justify-center">
+              {isHydrated && (
+                <Editor
+                  height="100vh"
+                  defaultLanguage="typescript"
+                  defaultValue={editorValue}
+                  beforeMount={handleEditorBeforeMount}
+                  onChange={(value) => setEditorValue(value ?? "")}
+                  theme="vs-dark"
+                  onMount={handleEditorDidMount}
+                />
+              )}
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={50}>
+            <div className="bg-white min-h-screen">
+              <LivePreview className="w-full" />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </LiveProvider>
     </div>
   );
+}
+
+export function ResizableDemo() {
+  return;
 }
