@@ -26,12 +26,16 @@ import { cn } from "@/lib/utils";
 // import { ActionFunctionArgs, redirect } from '@remix-run/node'
 
 interface UserAuthFormProps extends HTMLAttributes<HTMLDivElement> {}
-type LognErrorSchema = {
+
+type LoginErrorSchema = {
   data: {
-    message: string;
+    message: string; // Description of the error
+    details?: string; // Optional detailed information about the error
+    timestamp?: string; // Optional timestamp of when the error occurred
   };
-  statusCode: number;
-  error: string;
+  statusCode: number; // HTTP status code
+  error: string; // Short error code or type
+  stackTrace?: string; // Optional stack trace for debugging purposes
 };
 
 // handle form submission
@@ -75,7 +79,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         body: JSON.stringify(data),
       });
       if (!res.ok) {
-        const error = (await res.json()) as LognErrorSchema;
+        const error = (await res.json()) as LoginErrorSchema;
         throw new Error(error.data.message);
       }
       setIsLoading(false);
