@@ -5,7 +5,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { useMonacoStore } from "@/store/MonacoStore";
+import { useMonacoStore } from "@/stores/monaco-store";
 import type { OnMount } from "@monaco-editor/react";
 import { LiveProvider, LivePreview } from "react-live";
 import Editor from "@monaco-editor/react";
@@ -31,6 +31,16 @@ export default function Index() {
     const value = editorValue.replace(importRegex, "").trim();
     setRenderValue(value);
   }, [editorValue]);
+
+  useEffect(() => {
+    // append tailwind cdn script if not already present on header
+    // <script src="https://cdn.tailwindcss.com"></script>
+    // if (document.querySelector("script[src='https://cdn.tailwindcss.com']")) return;
+    // const head = document.head;
+    // const script = document.createElement("script");
+    // script.src = "https://cdn.tailwindcss.com";
+    // head?.insertBefore(script, head.firstChild);
+  }, []);
 
   const handleEditorBeforeMount = async (monaco: Monaco) => {
     const ts = monaco.languages.typescript;
