@@ -11,8 +11,7 @@ import {
 import { motion } from "framer-motion";
 import { EagerImage } from "@/components/custom/image";
 import { Button } from "@/components/ui/button";
-import { SheetTrigger, SheetContent, Sheet } from "@/components/ui/sheet";
-import { Link } from "@remix-run/react";
+import Navbar from "@/elements/landing-navbar";
 
 export const meta: MetaFunction = () => {
   return [
@@ -373,87 +372,20 @@ const items = [
 export default function Index() {
   return (
     <>
-      <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-6 dark:bg-black dark:text-gray-50 sticky top-0 z-50 border-b-2 border-white/[0.1]">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button className="lg:hidden" size="icon" variant="outline">
-              <MenuIcon className="h-6 w-6" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <Link className="flex items-center gap-2" to="#">
-              <MountainIcon className="h-6 w-6" />
-              <span className="text-lg font-semibold">Acme Inc</span>
-            </Link>
-            <div className="grid gap-4 py-6">
-              <Link
-                className="flex w-full items-center py-2 text-lg font-semibold"
-                to="#"
-              >
-                Home
-              </Link>
-              <Link
-                className="flex w-full items-center py-2 text-lg font-semibold"
-                to="#"
-              >
-                About
-              </Link>
-              <Link
-                className="flex w-full items-center py-2 text-lg font-semibold"
-                to="#"
-              >
-                Products
-              </Link>
-              <Link
-                className="flex w-full items-center py-2 text-lg font-semibold"
-                to="#"
-              >
-                Contact
-              </Link>
-            </div>
-          </SheetContent>
-        </Sheet>
-        <Link className="mr-6 hidden lg:flex items-center gap-2" to="#">
-          <MountainIcon className="h-6 w-6" />
-          <span className="text-lg font-semibold">Acme Inc</span>
-        </Link>
-        <nav className="hidden lg:flex items-center gap-6">
-          <Link
-            className="text-lg font-medium hover:underline underline-offset-4"
-            to="#"
-          >
-            Home
-          </Link>
-          <Link
-            className="text-lg font-medium hover:underline underline-offset-4"
-            to="#"
-          >
-            About
-          </Link>
-          <Link
-            className="text-lg font-medium hover:underline underline-offset-4"
-            to="#"
-          >
-            Products
-          </Link>
-          <Link
-            className="text-lg font-medium hover:underline underline-offset-4"
-            to="#"
-          >
-            Contact
-          </Link>
-        </nav>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline">Sign In</Button>
-          <Button>Sign Up</Button>
-        </div>
-      </header>
-      <div className="h-[50rem] w-full dark:bg-black bg-white dark:bg-grid-white/[0.1] bg-grid-black/[0.2] relative flex items-center justify-center md:px-0 px-4">
+      <Navbar />
+      <div className="h-[50rem] w-full dark:bg-black bg-white dark:bg-grid-white/[0.1] bg-grid-black/[0.2] relative flex items-center justify-center md:px-0 px-4 flex-col">
         {/* Radial gradient for the container to give a faded look */}
         <p className="text-4xl sm:text-7xl font-bold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-8 max-w-4xl">
           Elevate Your Code Quality with AI-Powered Analysis
         </p>
+        <div>
+          <p className="text-lg sm:text-xl font-semibold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 max-w-4xl">
+            Sell high-quality, AI-reviewed code snippets on the Kortex platform.
+          </p>
+        </div>
+        <div>
+          <Button className="mt-8">Get Started</Button>
+        </div>
       </div>
 
       <div className="w-full bg-black dark:bg-grid-white/[0.1] bg-grid-black/[0.2]">
@@ -462,50 +394,5 @@ export default function Index() {
         </div>
       </div>
     </>
-  );
-}
-
-// export function Nav() {
-//   return (
-//   )
-// }
-
-function MenuIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="4" x2="20" y1="12" y2="12" />
-      <line x1="4" x2="20" y1="6" y2="6" />
-      <line x1="4" x2="20" y1="18" y2="18" />
-    </svg>
-  );
-}
-
-function MountainIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-    </svg>
   );
 }

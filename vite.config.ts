@@ -16,6 +16,7 @@ export default defineConfig({
       "@radix-ui/react-popover",
       "@radix-ui/react-slot",
       "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-select",
     ],
   },
 });
