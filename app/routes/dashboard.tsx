@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDashboardStore } from "@/stores/dashboard-store";
+import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
 
 const Image = LazyImage;
 
@@ -64,19 +65,23 @@ const prependDashboard = (path: string | undefined) => {
   return newPath;
 };
 
-export default function Layout() {
+export default function DashboardLayout() {
   return (
     <ClientOnly>
       {() => (
         <TooltipProvider>
-          <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-              <SidebarLinks />
-              <DashboardHeader />
-              <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
-                <Outlet />
-              </main>
-            </div>
+          <SidebarLinks />
+          <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+            <Layout className="flex min-h-screen w-full flex-col relative">
+              <LayoutHeader>
+                <DashboardHeader />
+              </LayoutHeader>
+              <LayoutBody>
+                <main className="">
+                  <Outlet />
+                </main>
+              </LayoutBody>
+            </Layout>
           </div>
         </TooltipProvider>
       )}
@@ -108,7 +113,7 @@ function DashboardHeader() {
   }, [loc.pathname]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static h-auto sm:bg-transparent sm:px-6 w-full">
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
