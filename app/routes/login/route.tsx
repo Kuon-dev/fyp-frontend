@@ -1,4 +1,6 @@
 import { UserAuthForm } from "@/elements/user-auth-form";
+import { Button } from "@/components/ui/button";
+import { Link } from "@remix-run/react";
 
 export default function Login() {
   return (
@@ -51,7 +53,7 @@ export default function Login() {
               </p>
             </div>
             <UserAuthForm />
-            <p className="px-8 text-center text-sm text-muted-foreground">
+            <p className="px-8 text-center text-sm text-muted-foreground mt-2">
               By clicking login, you agree to our{" "}
               <a
                 href="/terms"
@@ -68,6 +70,14 @@ export default function Login() {
               </a>
               .
             </p>
+          </div>
+          <div className="flex justify-center mt-4">
+            <Link
+              to="/"
+              className="text-sm font-medium text-muted-foreground hover:opacity-75"
+            >
+              <Button variant="outline">Back to Home</Button>
+            </Link>
           </div>
         </div>
       </div>
