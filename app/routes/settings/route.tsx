@@ -4,15 +4,14 @@ import { redirect } from "@remix-run/node";
 import { Separator } from "@/components/ui/separator";
 import { IconTool, IconUser } from "@tabler/icons-react";
 import SidebarNav from "@/elements/sidebar-nav";
-import { ClientOnly } from "remix-utils/client-only";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { ClientOnly } from "remix-utils/client-only";
+// import { TooltipProvider } from "@/components/ui/tooltip";
 import DashboardSidebar from "@/elements/dashboard-sidebar";
 import DashboardHeader from "@/elements/dashboard-header";
 import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  if (request.url === "/dashboard/settings")
-    return redirect("/dashboard/settings/profile");
+  if (request.url === "/settings") return redirect("/settings/profile");
   // else no redirect
   return {
     props: {},
@@ -69,7 +68,7 @@ const sidebarNavItems = [
   {
     title: "Profile",
     icon: <IconUser size={18} />,
-    href: "/settings",
+    href: "/settings/profile",
   },
   {
     title: "Account",
