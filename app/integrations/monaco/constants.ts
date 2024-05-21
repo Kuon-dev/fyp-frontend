@@ -1,6 +1,13 @@
+export const DEFAULT_CSS_MONACO = `
+.custom-class {
+  color: red;
+}
+`;
+
 export const DEFAULT_REACT_MONACO = `
 import * as React from 'react'
 import { render } from 'react-live'
+import './index.css'
 
 type Props = {
   label: string;

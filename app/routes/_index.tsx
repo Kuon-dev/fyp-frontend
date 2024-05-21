@@ -393,6 +393,7 @@ export default function Index() {
           <BentoGridThirdDemo />
         </div>
       </div>
+      <div></div>
     </>
   );
 }
