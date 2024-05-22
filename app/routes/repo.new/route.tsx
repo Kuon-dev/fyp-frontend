@@ -39,7 +39,7 @@ import { ClientOnly } from "remix-utils/client-only";
 export default function EditorLayout() {
   return (
     <Layout>
-      <Tabs defaultValue="account" className="">
+      <Tabs defaultValue="main" className="">
         <LayoutHeader>
           <TabsList className="grid w-[400px] grid-cols-2">
             <TabsTrigger value="main">index</TabsTrigger>
@@ -56,26 +56,28 @@ export default function EditorLayout() {
 }
 
 function CodeRepoEditorPreview() {
-  const [editorValue, setEditorValue] = useMonacoStore((state) => [
+  const [editorValue, handleEditorChange] = useMonacoStore((state) => [
     state.editorValue,
     state.handleEditorChange,
   ]);
-  const [renderValue, setRenderValue] = useState("");
-  const [cssValue, setCssValue] = useState(DEFAULT_CSS_MONACO);
+  const [cssValue, handleCssChange] = useMonacoStore((state) => [
+    state.cssValue,
+    state.handleCssChange,
+  ]);
+  const [renderValue, setRenderValue] = useState(editorValue);
+  const editorOptions = useMonacoStore((state) => state.editorOptions);
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
-  // const debouncedValue = useDebounce(editorValue, 500)
+
   useEffect(() => {
-    // remove react import statements
+    // Remove react import statements
     const importRegex = /^import\s.+?;?\s*$/gm;
     const value = editorValue.replace(importRegex, "").trim();
-    // add import css back
+    // Add import css back
     setRenderValue(`
       injectCSS(cssValue);
       ${value}
-      `);
+    `);
   }, [editorValue, cssValue]);
-
-  useEffect(() => {}, []);
 
   const handleEditorBeforeMount = async (monaco: Monaco) => {
     const ts = monaco.languages.typescript;
@@ -85,8 +87,6 @@ function CodeRepoEditorPreview() {
       esModuleInterop: true,
       isolatedModules: true,
       jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
-      jsxEmit: "react",
-      // jsx: "react",
       moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
       noEmit: true,
       skipLibCheck: true,
@@ -102,11 +102,11 @@ function CodeRepoEditorPreview() {
     monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
     const response = await fetch("https://unpkg.com/@types/react/index.d.ts");
     const reactTypes = await response.text();
-    const reactLiveTypes = `delcare module 'react-live' {
-      export const render: (props: any) => any
-    `;
+    const reactLiveTypes = `declare module 'react-live' {
+      export const render: (props: any) => any;
+    }`;
     const reactJSXRuntime = `declare module 'react/jsx-runtime' {
-      export default any
+      export default any;
     }`;
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       reactTypes,
@@ -156,11 +156,12 @@ function CodeRepoEditorPreview() {
                   <TabsContent value="main" className="w-full h-full">
                     <Editor
                       height="100vh"
-                      defaultLanguage="typescript"
+                      defaultLanguage={editorOptions.language}
                       defaultValue={editorValue}
                       beforeMount={handleEditorBeforeMount}
-                      onChange={(value) => setEditorValue(value ?? "")}
-                      theme="vs-dark"
+                      onChange={(value) => handleEditorChange(value ?? "")}
+                      theme={editorOptions.theme}
+                      options={{ fontSize: editorOptions.fontSize }}
                       onMount={handleEditorDidMount}
                     />
                   </TabsContent>
@@ -170,8 +171,9 @@ function CodeRepoEditorPreview() {
                       defaultLanguage="css"
                       defaultValue={cssValue}
                       beforeMount={handleEditorBeforeMount}
-                      onChange={(value) => setCssValue(value ?? "")}
-                      theme="vs-dark"
+                      onChange={(value) => handleCssChange(value ?? "")}
+                      theme={editorOptions.theme}
+                      options={{ fontSize: editorOptions.fontSize }}
                       onMount={handleEditorCssDidMount}
                     />
                   </TabsContent>
@@ -199,79 +201,88 @@ function MonacoLoading() {
   );
 }
 
-function MenubarDemo() {
+export function MenubarDemo() {
+  const setEditorOptions = useMonacoStore((state) => state.setEditorOptions);
+
+  const handleChangeTheme = (theme: string) => {
+    setEditorOptions({ theme });
+  };
+
+  const handleChangeFontSize = (fontSize: number) => {
+    setEditorOptions({ fontSize });
+  };
+
+  const handleChangeLanguage = (language: string) => {
+    setEditorOptions({ language });
+  };
+
   return (
     <Menubar>
       <MenubarMenu>
-        <MenubarTrigger>File</MenubarTrigger>
+        <MenubarTrigger>Editor Options</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
-            New Tab <MenubarShortcut>⌘T</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem>
-            New Window <MenubarShortcut>⌘N</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem disabled>New Incognito Window</MenubarItem>
-          <MenubarSeparator />
           <MenubarSub>
-            <MenubarSubTrigger>Share</MenubarSubTrigger>
+            <MenubarSubTrigger>Themes</MenubarSubTrigger>
             <MenubarSubContent>
-              <MenubarItem>Email link</MenubarItem>
-              <MenubarItem>Messages</MenubarItem>
-              <MenubarItem>Notes</MenubarItem>
+              <MenubarItem onClick={() => handleChangeTheme("vs-dark")}>
+                Dark Theme
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeTheme("vs-light")}>
+                Light Theme
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeTheme("hc-black")}>
+                High Contrast Black
+              </MenubarItem>
             </MenubarSubContent>
           </MenubarSub>
           <MenubarSeparator />
-          <MenubarItem>
-            Print... <MenubarShortcut>⌘P</MenubarShortcut>
-          </MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger>Edit</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem>
-            Undo <MenubarShortcut>⌘Z</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem>
-            Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
           <MenubarSub>
-            <MenubarSubTrigger>Find</MenubarSubTrigger>
+            <MenubarSubTrigger>Font Sizes</MenubarSubTrigger>
             <MenubarSubContent>
-              <MenubarItem>Search the web</MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem>Find...</MenubarItem>
-              <MenubarItem>Find Next</MenubarItem>
-              <MenubarItem>Find Previous</MenubarItem>
+              <MenubarItem onClick={() => handleChangeFontSize(12)}>
+                12
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeFontSize(14)}>
+                14
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeFontSize(16)}>
+                16
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeFontSize(18)}>
+                18
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeFontSize(20)}>
+                20
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeFontSize(22)}>
+                22
+              </MenubarItem>
             </MenubarSubContent>
           </MenubarSub>
           <MenubarSeparator />
-          <MenubarItem>Cut</MenubarItem>
-          <MenubarItem>Copy</MenubarItem>
-          <MenubarItem>Paste</MenubarItem>
+          <MenubarItem onClick={() => setEditorOptions({ wordWrap: "on" })}>
+            Enable Word Wrap
+          </MenubarItem>
+          <MenubarItem onClick={() => setEditorOptions({ wordWrap: "off" })}>
+            Disable Word Wrap
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarSub>
+            <MenubarSubTrigger>Language</MenubarSubTrigger>
+            <MenubarSubContent>
+              <MenubarItem onClick={() => handleChangeLanguage("typescript")}>
+                TSX
+              </MenubarItem>
+              <MenubarItem onClick={() => handleChangeLanguage("javascript")}>
+                JSX
+              </MenubarItem>
+            </MenubarSubContent>
+          </MenubarSub>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>
   );
 }
-
-const CSSInjector = ({ css }: { css: string }) => {
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.type = "text/css";
-    style.appendChild(document.createTextNode(css));
-    document.head.appendChild(style);
-
-    // Cleanup function to remove the style tag when the component unmounts
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, [css]);
-
-  return null;
-};
 
 const injectCSS = (css: string) => {
   const style = document.createElement("style");

@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { EagerImage } from "@/components/custom/image";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/elements/landing-navbar";
+import Footer from "@/components/landing/footer";
 
 export const meta: MetaFunction = () => {
   return [
@@ -388,12 +389,12 @@ export default function Index() {
         </div>
       </div>
 
-      <div className="w-full bg-black dark:bg-grid-white/[0.1] bg-grid-black/[0.2]">
-        <div className="md:max-w-4xl mx-auto bg-black max-w-2xl md:px-0 px-4">
+      <div className="w-full bg-black dark:bg-grid-white/[0.1] bg-grid-black/[0.2] pb-20">
+        <div className="md:max-w-4xl mx-auto bg-transparent max-w-2xl md:px-0 px-4">
           <BentoGridThirdDemo />
+          <Footer className="pt-10" />
         </div>
       </div>
-      <div></div>
     </>
   );
 }
