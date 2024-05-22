@@ -38,7 +38,7 @@ function BentoGridThirdDemo() {
   );
 }
 const Skeleton = () => (
-  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl   dark:bg-dot-white/[0.2] bg-dot-black/[0.2] [mask-image:radial-gradient(ellipse_at_center,white,transparent)]  border border-transparent dark:border-white/[0.2] bg-neutral-100 dark:bg-black"></div>
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl dark:bg-dot-white/[0.2] bg-dot-black/[0.2] [mask-image:radial-gradient(ellipse_at_center,white,transparent)]  border border-transparent dark:border-white/[0.2] bg-neutral-100 dark:bg-black"></div>
 );
 
 const SkeletonOne = () => {
@@ -375,7 +375,7 @@ export default function Index() {
   return (
     <>
       <Navbar />
-      <div className="h-[50rem] w-full dark:bg-black bg-white dark:bg-grid-white/[0.1] bg-grid-black/[0.2] relative flex items-center justify-center md:px-0 px-4 flex-col">
+      <div className="h-[95dvh] mt-[5dvh] w-full dark:bg-black bg-white dark:bg-grid-white/[0.1] bg-grid-black/[0.2] relative flex items-center justify-center md:px-0 px-4 flex-col">
         {/* Radial gradient for the container to give a faded look */}
         <p className="text-4xl sm:text-7xl font-bold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-8 max-w-4xl">
           Elevate Your Code Quality with AI-Powered Analysis
@@ -387,6 +387,14 @@ export default function Index() {
         </div>
         <div>
           <Button className="mt-8">Get Started</Button>
+        </div>
+        <div className="mt-32">
+          {/*
+          <p className="text-xl sm:text-4xl font-bold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 max-w-4xl">
+            <span>What is Kortex?</span><span>{"   "}</span><span className="text-lg sm:text-xl font-semibold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 max-w-4xl">Sell high-quality, AI-reviewed code snippets on the Kortex platform.
+            </span>
+          </p>
+           */}
         </div>
       </div>
 
