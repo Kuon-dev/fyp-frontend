@@ -371,6 +371,7 @@ const items = [
 ];
 
 export default function Index() {
+  // const { showBanner } = useLoaderData<typeof loader>();
   return (
     <>
       <Navbar />

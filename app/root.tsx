@@ -7,21 +7,34 @@ import {
   json,
   useLoaderData,
 } from "@remix-run/react";
+import { cookieConsent } from "@/utils/cookies.server";
 import stylesheet from "@/tailwind.css?url";
-import type { LinksFunction } from "@remix-run/node";
+import type {
+  LinksFunction,
+  LoaderFunction,
+  ActionFunction,
+} from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
+import CookieBanner from "@/components/landing/cookie-banner";
+// import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
 
-export async function loader() {
+export const loader: LoaderFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const cookie = (await cookieConsent.parse(cookieHeader)) || {};
+  console.log("GET", cookie);
+
   return json({
+    showBanner: !cookie.accepted,
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
     },
   });
-}
+};
 
 declare global {
   interface Window {
@@ -30,6 +43,27 @@ declare global {
     };
   }
 }
+
+export const action: ActionFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const cookie = (await cookieConsent.parse(cookieHeader)) || {};
+  console.log(request);
+  const formData = await request.formData();
+  // console.log('POST', formData.get("analytics"))
+  if (formData.get("analytics")) {
+    cookie.accepted = true;
+    cookie.value = {
+      essential: true,
+      analytics: formData.get("analytics") === "true",
+    };
+  }
+
+  return redirect("/", {
+    headers: {
+      "Set-Cookie": await cookieConsent.serialize(cookie),
+    },
+  });
+};
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<typeof loader>();
@@ -49,6 +83,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           }}
         ></script>
         <ScrollRestoration />
+        <CookieBanner open={data.showBanner} />
         <Scripts />
       </body>
     </html>

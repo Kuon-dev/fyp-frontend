@@ -13,58 +13,58 @@ import {
 
 const projects = [
   {
-    id: 1,
+    id: "1",
     title: "Project 1",
     description: "A simple landing page built with HTML, CSS, and JavaScript.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project1",
   },
   {
-    id: 2,
+    id: "2",
     title: "Project 2",
     description:
       "A responsive e-commerce website with a shopping cart and checkout process.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project2",
   },
   {
-    id: 3,
+    id: "3",
     title: "Project 3",
     description:
       "A data visualization dashboard with interactive charts and graphs.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project3",
   },
   {
-    id: 4,
+    id: "4",
     title: "Project 4",
     description:
       "A mobile-first web application for managing personal tasks and to-do lists.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project4",
   },
   {
-    id: 5,
+    id: "5",
     title: "Project 5",
     description: "A web-based game built with HTML5 canvas and JavaScript.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project5",
   },
   {
-    id: 6,
+    id: "6",
     title: "Project 6",
     description:
       "A responsive portfolio website showcasing my design and development work.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project6",
   },
   {
-    id: 7,
+    id: "7",
     title: "Project 7",
     description:
       "A web application for managing and tracking personal finances.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project7",
   },
   {
-    id: 8,
+    id: "8",
     title: "Project 8",
     description:
       "A web-based chat application with real-time messaging and notifications.",
-    image: "/placeholder.svg",
+    iframeSrc: "https://example.com/project8",
   },
 ];
 
@@ -112,18 +112,17 @@ export default function Component() {
                 key={project.id}
                 className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
-                <Link className="block" href="#">
-                  <img
-                    alt="Project Thumbnail"
-                    className="w-full h-48 object-cover"
-                    height="200"
-                    src={project.image}
+                <Link className="block" to="#">
+                  <iframe
+                    title={project.id}
+                    src={project.iframeSrc}
+                    loading="lazy"
+                    className="w-full h-48"
                     style={{
                       aspectRatio: "300/200",
                       objectFit: "cover",
                     }}
-                    width="300"
-                  />
+                  ></iframe>
                 </Link>
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
