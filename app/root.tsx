@@ -18,6 +18,7 @@ import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
 // import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
+//
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -26,7 +27,6 @@ export const links: LinksFunction = () => [
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
-  console.log("GET", cookie);
 
   return json({
     showBanner: !cookie.accepted,
