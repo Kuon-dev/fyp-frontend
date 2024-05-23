@@ -7,9 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
-  // TableCaption,
   TableCell,
-  // TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -127,18 +125,10 @@ function Pricing() {
 export default function Layout() {
   return (
     <>
-      <Navbar />
-      <div className="w-full bg-black dark:bg-grid-white/[0.1] bg-grid-black/[0.2] pb-20 pt-32">
-        <div className="md:max-w-4xl mx-auto bg-transparent max-w-2xl lg:px-0 px-4">
-          <Button className="" variant="link">
-            <Link to="/">&larr; Back to Home</Link>
-          </Button>
-          <Shell>
-            <Pricing />
-          </Shell>
-          <Footer className="pt-10" />
-        </div>
-      </div>
+      <Shell>
+        <Pricing />
+      </Shell>
+      <Footer className="pt-10" />
     </>
   );
 }
