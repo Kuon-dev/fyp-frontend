@@ -18,14 +18,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/elements/landing-navbar";
+// import Navbar from "@/elements/landing-navbar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Form,
   FormControl,
-  FormDescription,
+  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -36,18 +36,17 @@ import { useState } from "react";
 import { Spinner } from "@/components/custom/spinner";
 
 const SupportFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email"),
-  topic: z.string().min(1, "Topic is required"),
-  message: z.string().min(1, "Message is required"),
+  name: z.string().min(1, "Name is required").max(255),
+  email: z.string().email("Invalid email").max(255),
+  title: z.string().min(1, "Title is required").max(255),
+  type: z.string().min(1, "type is required").max(255),
+  message: z
+    .string()
+    .min(1, "Message is required")
+    .max(10000, "Message is too long"),
 });
 
 type SupportFormData = z.infer<typeof SupportFormSchema>;
-
-const mockSubmit = async (data: SupportFormData) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return true;
-};
 
 function SupportCard() {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,8 +55,9 @@ function SupportCard() {
     resolver: zodResolver(SupportFormSchema),
     defaultValues: {
       name: "",
+      title: "",
       email: "",
-      topic: "",
+      type: "",
       message: "",
     },
   });
@@ -65,13 +65,32 @@ function SupportCard() {
   const onSubmit = async (data: SupportFormData) => {
     setIsLoading(true);
     try {
-      const response = await mockSubmit(data);
-      if (response) {
-        toast.success("Support request submitted");
-        form.reset();
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/ticket/new`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            title: data.title,
+            // subject: data.type,
+            message: data.message,
+            type: data.type,
+          }),
+        },
+      );
+
+      const res = await response.json();
+      if (!response.ok) {
+        throw new Error(res.data.message);
       }
+      toast("Your ticket has been submitted. We'll get back to you shortly.");
     } catch (error) {
-      toast.error("Failed to submit support request");
+      console.log(error);
+      toast(`An error occurred. ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +132,26 @@ function SupportCard() {
             />
             <FormField
               control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="title"
+                      placeholder="Enter your title"
+                      required
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -132,14 +171,14 @@ function SupportCard() {
             />
             <FormField
               control={form.control}
-              name="topic"
+              name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Topic</FormLabel>
+                  <FormLabel>Ticket type</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a topic" />
+                        <SelectValue placeholder="Select a type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

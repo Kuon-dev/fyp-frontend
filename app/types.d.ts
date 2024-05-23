@@ -127,3 +127,14 @@ type DB = {
   Tag: Tag;
   User: User;
 };
+
+type ErrorSchema = {
+  data: {
+    message: string; // Description of the error
+    details?: string; // Optional detailed information about the error
+    timestamp?: string; // Optional timestamp of when the error occurred
+  };
+  statusCode: number; // HTTP status code
+  error: string; // Short error code or type
+  stackTrace?: string; // Optional stack trace for debugging purposes
+};
