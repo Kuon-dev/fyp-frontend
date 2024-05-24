@@ -6,7 +6,7 @@ export const DEFAULT_CSS_MONACO = `
 
 export const DEFAULT_REACT_MONACO = `
 import * as React from 'react'
-import { render } from 'react-live'
+import { render } from 'react-dom'
 import './index.css'
 
 type Props = {

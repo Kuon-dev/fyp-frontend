@@ -102,7 +102,7 @@ function CodeRepoEditorPreview() {
     monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
     const response = await fetch("https://unpkg.com/@types/react/index.d.ts");
     const reactTypes = await response.text();
-    const reactLiveTypes = `declare module 'react-live' {
+    const reactLiveTypes = `declare module 'react-dom' {
       export const render: (props: any) => any;
     }`;
     const reactJSXRuntime = `declare module 'react/jsx-runtime' {
@@ -114,7 +114,7 @@ function CodeRepoEditorPreview() {
     );
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       reactLiveTypes,
-      "file:///node_modules/@types/react-live/index.d.ts",
+      "file:///node_modules/@types/react-dom/index.d.ts",
     );
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       reactJSXRuntime,
