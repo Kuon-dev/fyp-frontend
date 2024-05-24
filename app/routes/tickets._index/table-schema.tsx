@@ -1,10 +1,6 @@
-import { ColumnDef , Row } from "@tanstack/react-table";
-
-import { Badge } from "@/components/ui/badge";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
-
 import { z } from "zod";
 import {
   ArrowDownIcon,
@@ -12,10 +8,11 @@ import {
   ArrowUpIcon,
   CheckCircledIcon,
   CircleIcon,
-  CrossCircledIcon,
+  // CrossCircledIcon,
   QuestionMarkCircledIcon,
   StopwatchIcon,
- DotsHorizontalIcon } from "@radix-ui/react-icons";
+  DotsHorizontalIcon,
+} from "@radix-ui/react-icons";
 import type { ZodSchema } from "zod";
 import { Button } from "@/components/custom/button";
 import {
@@ -41,15 +38,16 @@ import {
   // DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SupportCard } from "./modify-ticket-component";
 
 type TableData = {
   [key: string]: any;
 };
 
-interface LabelOption {
-  label: string;
-  value: string;
-}
+// interface LabelOption {
+//   label: string;
+//   value: string;
+// }
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -60,8 +58,7 @@ export function TicketTableRowActions<TData>({
   row,
   tableSchema,
 }: DataTableRowActionsProps<TData>) {
-  // const ticket = tableSchema.parse(row.original);
-
+  const ticket = tableSchema.parse(row.original);
   return (
     <Dialog>
       <DropdownMenu>
@@ -81,7 +78,9 @@ export function TicketTableRowActions<TData>({
           <DropdownMenuItem>Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DialogContent className="sm:max-w-[425px]">Hi</DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
+        <SupportCard ticketId={ticket.id} />
+      </DialogContent>
     </Dialog>
   );
 }

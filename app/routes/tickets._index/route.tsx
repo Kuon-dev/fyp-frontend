@@ -1,40 +1,16 @@
-import React, { useEffect } from "react";
+// import React, { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "@/components/data-table/data-table";
 import { columns, statuses } from "./table-schema";
 import { ClientOnly } from "remix-utils/client-only";
 import { LoaderFunction, json } from "@remix-run/node";
-import {
-  Outlet,
-  useLoaderData,
-  useNavigate,
-  useOutlet,
-  useRouteError,
-} from "@remix-run/react";
-import {} from // Dialog,
-// DialogContent,
-// DialogDescription,
-// DialogFooter,
-// DialogHeader,
-// DialogTitle,
-// DialogTrigger,
-"@/components/ui/dialog";
+import { useLoaderData, useRouteError } from "@remix-run/react";
+import ErrorComponent from "@/components/error/500";
 
 // import { Clie}
 export const ErrorBoundary = () => {
   const error = useRouteError();
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold mb-4">
-          Oh no! Something went wrong!
-        </h1>
-        <p className="text-lg text-gray-600">
-          We're sorry! It looks like something went wrong. Please try again
-          later.
-        </p>
-      </div>
-    </div>
-  );
+  return <ErrorComponent />;
 };
 
 export const loader: LoaderFunction = async () => {
@@ -71,7 +47,7 @@ export default function TicketIndex() {
 
   return (
     <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-      <ClientOnly fallback={<div>Loading...</div>}>
+      <ClientOnly fallback={<LoadingComponent />}>
         {() => (
           <>
             <DataTable
@@ -82,6 +58,24 @@ export default function TicketIndex() {
           </>
         )}
       </ClientOnly>
+    </div>
+  );
+}
+
+function LoadingComponent() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center">
+      <div className="flex flex-col items-center space-y-4">
+        <p className="text-gray-500 dark:text-gray-400">
+          Please wait while we are preparing the content
+        </p>
+        <div className="flex items-center space-x-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
