@@ -128,7 +128,6 @@ export default function Layout() {
       <Shell>
         <Pricing />
       </Shell>
-      <Footer className="pt-10" />
     </>
   );
 }

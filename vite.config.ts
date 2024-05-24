@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [remix(), tsconfigPaths()],
   ssr: {
     noExternal: [
-      "@radix-ui/react-dialog",
+      // "@radix-ui/react-dialog",
       // "@radix-ui/react-tooltip",
       // "@radix-ui/react-accordion",
       "@radix-ui/react-alert-dialog",
@@ -27,7 +27,7 @@ export default defineConfig({
       "@radix-ui/react-navigation-menu",
       "@radix-ui/react-popover",
       // "@radix-ui/react-progress",
-      // "@radix-ui/react-radio-group",
+      "@radix-ui/react-radio-group",
       "@radix-ui/react-scroll-area",
       "@radix-ui/react-select",
       // "@radix-ui/react-separator",

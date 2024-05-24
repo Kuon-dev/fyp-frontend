@@ -4,7 +4,7 @@ import { Link } from "@remix-run/react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { to: "#", label: "Home" },
+  { to: "/", label: "Home" },
   { to: "#", label: "About" },
   { to: "#", label: "Products" },
   { to: "#", label: "Contact" },
@@ -23,8 +23,10 @@ export default function Navbar() {
         <Sheet>
           <SheetTrigger asChild>
             <Button className="lg:hidden" size="icon" variant="outline">
-              <MenuIcon className="h-6 w-6" />
-              <span className="sr-only">Toggle navigation menu</span>
+              <Link to="/">
+                <MenuIcon className="h-6 w-6" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Link>
             </Button>
           </SheetTrigger>
           <SheetContent side="left">

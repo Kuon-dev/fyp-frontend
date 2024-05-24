@@ -1,9 +1,9 @@
 import { Link, Outlet } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { Separator } from "@/components/ui/separator";
-import { IconTool, IconUser } from "@tabler/icons-react";
-import SidebarNav from "@/elements/sidebar-nav";
+// import { Separator } from "@/components/ui/separator";
+// import { IconTool, IconUser } from "@tabler/icons-react";
+// import SidebarNav from "@/elements/sidebar-nav";
 // import { ClientOnly } from "remix-utils/client-only";
 // import { TooltipProvider } from "@/components/ui/tooltip";
 import DashboardSidebar from "@/elements/dashboard-sidebar";

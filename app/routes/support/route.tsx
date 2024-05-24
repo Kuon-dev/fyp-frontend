@@ -15,7 +15,7 @@ export default function Layout() {
           <Button className="" variant="link">
             <Link to="/">&larr; Back to Home</Link>
           </Button>
-          <div className="flex flex-row p-2 border-border border rounded-lg bg-gray-800/50">
+          <div className="flex flex-row p-2 border-border border rounded-lg bg-gray-800/50 items-center text-sm h-full">
             <Link
               to="/support/ticket"
               className="text-gray-500 dark:text-gray-400 underline"
@@ -24,7 +24,7 @@ export default function Layout() {
                 Submit a ticket
               </Button>
             </Link>
-            <Separator orientation="vertical" />
+            <Separator orientation="vertical" className="bg-white h-5" />
             <Link
               to="/support/pricing"
               className="text-gray-500 dark:text-gray-400 underline"
@@ -35,7 +35,7 @@ export default function Layout() {
             </Link>
             <Separator orientation="vertical" />
           </div>
-          <div className="mt-8">
+          <div className="mt-5">
             <Outlet />
           </div>
           <Footer className="pt-10" />
