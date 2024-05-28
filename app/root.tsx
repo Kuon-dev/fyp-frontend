@@ -4,8 +4,10 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
   json,
   useLoaderData,
+  useRouteError,
 } from "@remix-run/react";
 import { cookieConsent } from "@/utils/cookies.server";
 import stylesheet from "@/tailwind.css?url";
@@ -96,5 +98,29 @@ export default function App() {
       <Toaster />
       <Outlet />
     </>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return (
+    <html lang="en">
+      <head>
+        <title>Oops!</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <h1>
+          Error
+          {isRouteErrorResponse(error)
+            ? `${error.status} ${error.statusText}`
+            : error instanceof Error
+              ? error.message
+              : "Unknown Error"}
+        </h1>
+        <Scripts />
+      </body>
+    </html>
   );
 }
