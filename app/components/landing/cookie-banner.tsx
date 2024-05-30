@@ -34,7 +34,7 @@ const FormSchema = z.object({
   analytics_cookie: z.boolean().default(false),
 });
 
-export default function CookieBanner({ open }: { open: boolean }) {
+export default function CookieBanner() {
   const navigate = useNavigate();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -43,6 +43,7 @@ export default function CookieBanner({ open }: { open: boolean }) {
       analytics_cookie: false,
     },
   });
+  const [dialogOpen, setDialogOpen] = React.useState(true);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
@@ -56,7 +57,8 @@ export default function CookieBanner({ open }: { open: boolean }) {
     // toast status
     if (res.ok) {
       toast.success("Cookie preferences saved");
-      navigate("/");
+      setDialogOpen(false);
+      // navigate("/");
     } else {
       toast.error("Failed to save cookie preferences");
     }
@@ -65,7 +67,7 @@ export default function CookieBanner({ open }: { open: boolean }) {
   return (
     <ClientOnly>
       {() => (
-        <AlertDialog open={open}>
+        <AlertDialog open={dialogOpen}>
           <AlertDialogContent>
             <Form {...form}>
               <form

@@ -1,17 +1,16 @@
-import { Link, Outlet } from "@remix-run/react";
+import { Outlet } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-// import { Separator } from "@/components/ui/separator";
-// import { IconTool, IconUser } from "@tabler/icons-react";
-// import SidebarNav from "@/elements/sidebar-nav";
-// import { ClientOnly } from "remix-utils/client-only";
-// import { TooltipProvider } from "@/components/ui/tooltip";
 import DashboardSidebar from "@/elements/dashboard-sidebar";
-import DashboardHeader from "@/elements/dashboard-header";
-import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
+import { Layout, LayoutBody } from "@/components/custom/layout";
+import { checkAuthCookie } from "@/lib/router-guard";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (request.url === "/repo") return redirect("/settings/profile");
+
+  if (!checkAuthCookie(request)) {
+    return redirect("/login");
+  }
   // else no redirect
   return {
     props: {},

@@ -85,7 +85,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           }}
         ></script>
         <ScrollRestoration />
-        <CookieBanner open={data.showBanner} />
+        {data.showBanner && <CookieBanner />}
         <Scripts />
       </body>
     </html>

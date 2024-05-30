@@ -3,9 +3,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "@/components/data-table/data-table";
 import { columns, statuses } from "./table-schema";
 import { ClientOnly } from "remix-utils/client-only";
-import { LoaderFunction, json } from "@remix-run/node";
+import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { useLoaderData, useRouteError } from "@remix-run/react";
 import ErrorComponent from "@/components/error/500";
+import { checkAuthCookie } from "@/lib/router-guard";
 
 // import { Clie}
 export const ErrorBoundary = () => {
@@ -13,14 +14,22 @@ export const ErrorBoundary = () => {
   return <ErrorComponent />;
 };
 
-export const loader: LoaderFunction = async () => {
-  const data = await fetch(
-    `${process.env.BACKEND_URL}/api/v1/tickets/all`,
-  ).then((res) => res.json());
+export const loader: LoaderFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  if (!checkAuthCookie(request)) return redirect("/login");
+
+  const data = await fetch(`${process.env.BACKEND_URL}/api/v1/tickets/all`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Cookie: cookieHeader?.toString() ?? "",
+    },
+  }).then((res) => res.json());
   if (data.status !== "success")
     throw new Error("Oh no! Something went wrong!");
   return json({
-    items: data,
+    items: data ?? [],
     sucess: data.ok,
   });
 };

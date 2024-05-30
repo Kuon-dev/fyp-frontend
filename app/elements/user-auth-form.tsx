@@ -77,10 +77,17 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           Accept: "application/json",
         },
         body: JSON.stringify(data),
+        credentials: "include",
       });
       if (!res.ok) {
         const error = (await res.json()) as LoginErrorSchema;
         throw new Error(error.data.message);
+      } else {
+        // set cookie
+        const json = await res.json();
+
+        toast.success("Login successful!");
+        // redirect
       }
       setIsLoading(false);
     } catch (error) {
