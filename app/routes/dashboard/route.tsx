@@ -1,8 +1,6 @@
-import { Outlet } from "@remix-run/react";
-import { ClientOnly } from "remix-utils/client-only";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import DashboardSidebar from "@/elements/dashboard-sidebar";
-import DashboardHeader from "@/elements/dashboard-header";
+import React from "react";
+import { Link, Outlet } from "@remix-run/react";
+import DashboardSidebar, { LinkProps } from "@/elements/dashboard-sidebar";
 import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
 import {
   adminSidebarLinks,
@@ -11,65 +9,54 @@ import {
   buyerSidebarLinks,
 } from "@/components/dashboard/constants";
 import { Settings } from "lucide-react";
-
-type UserRole = "admin" | "moderator" | "seller" | "buyer";
-
-export interface LinkProps {
-  to: string;
-  icon: JSX.Element;
-  tooltip: string;
-}
-
-const userRole = "admin"; // Replace this with dynamic role determination
-
-let sidebarLinks: LinkProps[];
-switch (userRole as UserRole) {
-  case "admin":
-    sidebarLinks = adminSidebarLinks;
-    break;
-  case "moderator":
-    sidebarLinks = moderatorSidebarLinks;
-    break;
-  case "seller":
-    sidebarLinks = sellerSidebarLinks;
-    break;
-  case "buyer":
-    sidebarLinks = buyerSidebarLinks;
-    break;
-  default:
-    sidebarLinks = buyerSidebarLinks; // Default to buyer if role is unknown
-}
-
-const settingsLink: LinkProps = {
-  to: "/settings/profile",
-  icon: <Settings className="h-5 w-5" />,
-  tooltip: "Settings",
-};
+import VerifyEmailComponent from "@/components/dashboard/verify-email";
+import { useDashboardStore } from "@/stores/dashboard-store";
 
 export default function DashboardLayout() {
+  const [sidebarLinks, setSidebarLinks] = React.useState<LinkProps[]>([]);
+  const [user] = useDashboardStore((state) => [state.user]);
+  React.useEffect(() => {
+    if (!user) return;
+    switch (user.role) {
+      case "admin":
+        setSidebarLinks(adminSidebarLinks);
+        break;
+      case "moderator":
+        setSidebarLinks(moderatorSidebarLinks);
+        break;
+      case "seller":
+        setSidebarLinks(sellerSidebarLinks);
+        break;
+      case "buyer":
+        setSidebarLinks(buyerSidebarLinks);
+        break;
+      default:
+        setSidebarLinks(buyerSidebarLinks);
+    }
+  }, [user]);
+
+  const settingsLink: LinkProps = {
+    to: "/settings/profile",
+    icon: <Settings className="h-5 w-5" />,
+    tooltip: "Settings",
+  };
+
   return (
-    <ClientOnly>
-      {() => (
-        <TooltipProvider>
-          <DashboardSidebar
-            sidebarLinks={sidebarLinks}
-            settingsLink={settingsLink}
-          />
-          ;
-          <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-            <Layout className="flex min-h-screen w-full flex-col relative">
-              <LayoutHeader>
-                <DashboardHeader />
-              </LayoutHeader>
-              <LayoutBody>
-                <main className="">
-                  <Outlet />
-                </main>
-              </LayoutBody>
-            </Layout>
-          </div>
-        </TooltipProvider>
-      )}
-    </ClientOnly>
+    <div>
+      <DashboardSidebar
+        sidebarLinks={sidebarLinks}
+        settingsLink={settingsLink}
+      />
+      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+        <Layout className="flex min-h-screen w-full flex-col relative">
+          <LayoutBody>
+            <main className="">
+              <Outlet />
+              {user?.emailVerified ? <div /> : <VerifyEmailComponent />}
+            </main>
+          </LayoutBody>
+        </Layout>
+      </div>
+    </div>
   );
 }

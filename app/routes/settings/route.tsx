@@ -1,14 +1,20 @@
-import { Link, Outlet } from "@remix-run/react";
+import React from "react";
+import { Outlet } from "@remix-run/react";
+import {
+  adminSidebarLinks,
+  moderatorSidebarLinks,
+  sellerSidebarLinks,
+  buyerSidebarLinks,
+} from "@/components/dashboard/constants";
+import { Settings } from "lucide-react";
+import VerifyEmailComponent from "@/components/dashboard/verify-email";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Separator } from "@/components/ui/separator";
 import { IconTool, IconUser } from "@tabler/icons-react";
 import SidebarNav from "@/elements/sidebar-nav";
-// import { ClientOnly } from "remix-utils/client-only";
-// import { TooltipProvider } from "@/components/ui/tooltip";
-import DashboardSidebar from "@/elements/dashboard-sidebar";
-import DashboardHeader from "@/elements/dashboard-header";
-import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
+import DashboardSidebar, { LinkProps } from "@/elements/dashboard-sidebar";
+import { Layout, LayoutBody } from "@/components/custom/layout";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (request.url === "/settings") return redirect("/settings/profile");
@@ -18,18 +24,48 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 };
 
-export default function SettingsLayout() {
+type UserRole = "admin" | "moderator" | "seller" | "buyer";
+
+export default function DashboardLayout() {
+  const [sidebarLinks, setSidebarLinks] = React.useState<LinkProps[]>([]);
+  const userRole = "admin"; // Replace this with dynamic role determination
+  React.useEffect(() => {
+    switch (userRole as UserRole) {
+      case "admin":
+        setSidebarLinks(adminSidebarLinks);
+        break;
+      case "moderator":
+        setSidebarLinks(moderatorSidebarLinks);
+        break;
+      case "seller":
+        setSidebarLinks(sellerSidebarLinks);
+        break;
+      case "buyer":
+        setSidebarLinks(buyerSidebarLinks);
+        break;
+      default:
+        setSidebarLinks(buyerSidebarLinks);
+    }
+  }, []);
+
+  const settingsLink: LinkProps = {
+    to: "/settings/profile",
+    icon: <Settings className="h-5 w-5" />,
+    tooltip: "Settings",
+  };
+
   return (
     <div>
-      <DashboardSidebar />
+      <DashboardSidebar
+        sidebarLinks={sidebarLinks}
+        settingsLink={settingsLink}
+      />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Layout className="flex min-h-screen w-full flex-col relative">
-          <LayoutHeader>
-            <DashboardHeader />
-          </LayoutHeader>
           <LayoutBody>
             <main className="">
-              <Settings />
+              <SettingsHeader />
+              <VerifyEmailComponent />
             </main>
           </LayoutBody>
         </Layout>
@@ -38,7 +74,7 @@ export default function SettingsLayout() {
   );
 }
 
-export function Settings() {
+export function SettingsHeader() {
   return (
     <div>
       <div className="space-y-0.5">

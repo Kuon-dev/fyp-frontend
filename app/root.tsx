@@ -19,6 +19,8 @@ import type {
 import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
+import { useDashboardStore } from "./stores/dashboard-store";
+import { useEffect } from "react";
 // import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
 //
 
@@ -29,9 +31,16 @@ export const links: LinksFunction = () => [
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
+  const user = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
+    headers: {
+      Cookie: cookieHeader ?? "",
+    },
+  }).then((res) => res.json());
+  console.log(user);
 
   return json({
     showBanner: !cookie.accepted,
+    user: user ?? {},
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
     },
@@ -69,6 +78,13 @@ export const action: ActionFunction = async ({ request }) => {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<typeof loader>();
+  const setUser = useDashboardStore((state) => state.setUser);
+
+  useEffect(() => {
+    if (data?.user?.id) {
+      setUser(data.user);
+    }
+  });
   return (
     <html lang="en">
       <head>

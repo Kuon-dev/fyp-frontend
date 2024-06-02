@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientOnly } from "remix-utils/client-only";
 
-interface LinkProps {
+export interface LinkProps {
   to: string;
   icon: JSX.Element;
   tooltip: string;

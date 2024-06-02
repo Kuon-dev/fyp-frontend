@@ -1,209 +1,235 @@
-import { Link } from "@remix-run/react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { CardContent, Card } from "@/components/ui/card";
+//import React from "react"
 import {
-  PaginationPrevious,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationContent,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
   Pagination,
+  PaginationContent,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationLink,
+  PaginationItem,
 } from "@/components/ui/pagination";
+import {
+  Grid3x3Icon,
+  Link,
+  MoveHorizontalIcon,
+  PlusIcon,
+  SearchIcon,
+} from "lucide-react";
+import { ClientOnly } from "remix-utils/client-only";
 
-const projects = [
+import { ProjectForm } from "./form";
+
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  iframeSrc: string;
+  link: string;
+}
+
+const projects: Project[] = [
   {
-    id: "1",
+    id: 1,
     title: "Project 1",
     description: "A simple landing page built with HTML, CSS, and JavaScript.",
-    iframeSrc: "https://example.com/project1",
+    iframeSrc: "https://example.com/iframe1",
+    link: "#",
   },
   {
-    id: "2",
+    id: 2,
     title: "Project 2",
     description:
       "A responsive e-commerce website with a shopping cart and checkout process.",
-    iframeSrc: "https://example.com/project2",
+    iframeSrc: "https://example.com/iframe2",
+    link: "#",
   },
   {
-    id: "3",
+    id: 3,
     title: "Project 3",
     description:
       "A data visualization dashboard with interactive charts and graphs.",
-    iframeSrc: "https://example.com/project3",
+    iframeSrc: "https://example.com/iframe3",
+    link: "#",
   },
   {
-    id: "4",
+    id: 4,
     title: "Project 4",
     description:
       "A mobile-first web application for managing personal tasks and to-do lists.",
-    iframeSrc: "https://example.com/project4",
+    iframeSrc: "https://example.com/iframe4",
+    link: "#",
   },
   {
-    id: "5",
+    id: 5,
     title: "Project 5",
     description: "A web-based game built with HTML5 canvas and JavaScript.",
-    iframeSrc: "https://example.com/project5",
+    iframeSrc: "https://example.com/iframe5",
+    link: "#",
   },
   {
-    id: "6",
+    id: 6,
     title: "Project 6",
     description:
       "A responsive portfolio website showcasing my design and development work.",
-    iframeSrc: "https://example.com/project6",
+    iframeSrc: "https://example.com/iframe6",
+    link: "#",
   },
   {
-    id: "7",
+    id: 7,
     title: "Project 7",
     description:
       "A web application for managing and tracking personal finances.",
-    iframeSrc: "https://example.com/project7",
+    iframeSrc: "https://example.com/iframe7",
+    link: "#",
   },
   {
-    id: "8",
+    id: 8,
     title: "Project 8",
-    description:
-      "A web-based chat application with real-time messaging and notifications.",
-    iframeSrc: "https://example.com/project8",
+    description: "A description for project 8.",
+    iframeSrc: "https://example.com/iframe8",
+    link: "#",
   },
 ];
 
-const itemsPerPage = 4;
-
 export default function Component() {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const handlePrevious = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNext = () => {
-    if (currentPage < Math.ceil(projects.length / itemsPerPage))
-      setCurrentPage(currentPage + 1);
-  };
-
-  const displayedProjects = projects.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
-
   return (
-    <div className="w-full min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
-      <main className="flex-1 py-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Your Codebase
-            </h1>
-            <div className="flex items-center gap-4">
-              <Button size="sm" variant="outline">
-                <PlusIcon className="w-4 h-4 mr-2" />
-                New Pen
-              </Button>
-              <Button size="sm" variant="outline">
-                <LayoutGridIcon className="w-4 h-4 mr-2" />
-                Grid View
-              </Button>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {displayedProjects.map((project) => (
-              <Card
-                key={project.id}
-                className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Link className="block" to="#">
-                  <iframe
-                    title={project.id}
-                    src={project.iframeSrc}
-                    loading="lazy"
-                    className="w-full h-48"
-                    style={{
-                      aspectRatio: "300/200",
-                      objectFit: "cover",
-                    }}
-                  ></iframe>
-                </Link>
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    {project.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 line-clamp-2">
-                    {project.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="flex justify-center mt-8">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious href="#" onClick={handlePrevious} />
-                </PaginationItem>
-                {[
-                  ...Array(Math.ceil(projects.length / itemsPerPage)).keys(),
-                ].map((_, index) => (
-                  <PaginationItem key={index}>
-                    <PaginationLink
-                      href="#"
-                      isActive={index + 1 === currentPage}
-                      onClick={() => setCurrentPage(index + 1)}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
+    <ClientOnly>
+      {() => (
+        <div className="w-full min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
+          <main className="flex-1 py-8 px-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Your Codebase
+                </h1>
+                <div className="flex items-center gap-4">
+                  <Dialog>
+                    <div className="relative">
+                      <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <Input
+                        type="search"
+                        placeholder="Search projects..."
+                        className="pl-8 w-[200px] sm:w-[300px]"
+                      />
+                    </div>
+                    <DialogTrigger>
+                      <Button variant="outline" size="sm">
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        New Pen
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Create New Pen</DialogTitle>
+                        <DialogDescription>
+                          Fill out the form below to create a new project.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <ProjectForm />
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                    <Button variant="outline" size="sm">
+                      <Grid3x3Icon className="w-4 h-4 mr-2" />
+                      Grid View
+                    </Button>
+                  </Dialog>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {projects.map((project) => (
+                  <Card
+                    key={project.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
+                  >
+                    <Link to={project.link} className="block">
+                      <iframe
+                        src={project.iframeSrc}
+                        title={project.title}
+                        width="100%"
+                        height="200"
+                        className="w-full h-48 object-cover"
+                        frameBorder="0"
+                      />
+                    </Link>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                          {project.title}
+                        </h3>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="ml-auto"
+                            >
+                              <MoveHorizontalIcon className="w-4 h-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>View Project</DropdownMenuItem>
+                            <DropdownMenuItem>
+                              View Project Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {project.description}
+                      </p>
+                    </CardContent>
+                  </Card>
                 ))}
-                <PaginationItem>
-                  <PaginationNext href="#" onClick={handleNext} />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+              </div>
+              <div className="flex justify-center mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious href="#" />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">1</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive>
+                        2
+                      </PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">3</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext href="#" />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
-  );
-}
-
-function LayoutGridIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="7" height="7" x="3" y="3" rx="1" />
-      <rect width="7" height="7" x="14" y="3" rx="1" />
-      <rect width="7" height="7" x="14" y="14" rx="1" />
-      <rect width="7" height="7" x="3" y="14" rx="1" />
-    </svg>
-  );
-}
-
-function PlusIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="M12 5v14" />
-    </svg>
+      )}
+    </ClientOnly>
   );
 }
