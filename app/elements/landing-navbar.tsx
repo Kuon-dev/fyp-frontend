@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { to: "/", label: "Home" },
-  { to: "#", label: "About" },
+  { to: "/about", label: "About" },
   { to: "#", label: "Products" },
-  { to: "#", label: "Contact" },
+  { to: "/support/ticket", label: "Contact" },
 ];
 
 export default function Navbar() {
@@ -30,7 +30,7 @@ export default function Navbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
-            <Link className="flex items-center gap-2" to="#">
+            <Link className="flex items-center gap-2" to="/">
               <MountainIcon className="h-6 w-6" />
               <span className="text-lg font-semibold">Kortex</span>
             </Link>
@@ -47,7 +47,7 @@ export default function Navbar() {
             </div>
           </SheetContent>
         </Sheet>
-        <Link className="mr-20 hidden lg:flex items-center gap-4" to="#">
+        <Link className="mr-20 hidden lg:flex items-center gap-4" to="/">
           <MountainIcon className="h-6 w-6" />
           <span className="text-lg font-semibold">Kortex</span>
         </Link>
@@ -63,8 +63,12 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline">Sign In</Button>
-          <Button>Sign Up</Button>
+          <Button variant="outline">
+            <Link to="/login">Login</Link>
+          </Button>
+          <Button>
+            <Link to="/register">Sign Up</Link>
+          </Button>
         </div>
       </header>
     </section>

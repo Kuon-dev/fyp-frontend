@@ -1,13 +1,6 @@
+// DashboardSidebar.tsx
 import { Link } from "@remix-run/react";
-import {
-  Home,
-  LineChart,
-  Package,
-  Package2,
-  Settings,
-  ShoppingCart,
-  Users2,
-} from "lucide-react";
+import { Package2 } from "lucide-react";
 
 import {
   Tooltip,
@@ -18,9 +11,30 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientOnly } from "remix-utils/client-only";
 
-export default function DashboardSidebar() {
+interface LinkProps {
+  to: string;
+  icon: JSX.Element;
+  tooltip: string;
+}
+
+interface DashboardSidebarProps {
+  sidebarLinks: LinkProps[];
+  settingsLink: LinkProps;
+}
+
+export default function DashboardSidebar({
+  sidebarLinks,
+  settingsLink,
+}: DashboardSidebarProps) {
   return (
-    <ClientOnly fallback={<DashboardSidebarFallback />}>
+    <ClientOnly
+      fallback={
+        <DashboardSidebarFallback
+          sidebarLinks={sidebarLinks}
+          settingsLink={settingsLink}
+        />
+      }
+    >
       {() => (
         <TooltipProvider>
           <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -70,7 +84,10 @@ export default function DashboardSidebar() {
   );
 }
 
-function DashboardSidebarFallback() {
+function DashboardSidebarFallback({
+  sidebarLinks,
+  settingsLink,
+}: DashboardSidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
@@ -99,21 +116,3 @@ function DashboardSidebarFallback() {
     </aside>
   );
 }
-
-export const sidebarLinks = [
-  {
-    to: "/dashboard",
-    icon: <Home className="h-5 w-5" />,
-    tooltip: "Dashboard",
-  },
-  { to: "#", icon: <ShoppingCart className="h-5 w-5" />, tooltip: "Orders" },
-  { to: "#", icon: <Package className="h-5 w-5" />, tooltip: "Products" },
-  { to: "#", icon: <Users2 className="h-5 w-5" />, tooltip: "Customers" },
-  { to: "#", icon: <LineChart className="h-5 w-5" />, tooltip: "Analytics" },
-];
-
-const settingsLink = {
-  to: "/settings/profile",
-  icon: <Settings className="h-5 w-5" />,
-  tooltip: "Settings",
-};

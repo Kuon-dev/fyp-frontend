@@ -20,9 +20,9 @@ export default function Navbar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
-          <Link className="flex items-center gap-2" to="#">
+          <Link className="flex items-center gap-2" to="/">
             <MountainIcon className="h-6 w-6" />
-            <span className="text-lg font-semibold">Acme Inc</span>
+            <span className="text-lg font-semibold">Kortex</span>
           </Link>
           <div className="grid gap-4 py-6">
             {navLinks.map((link, index) => (

@@ -1,7 +1,5 @@
 import Navbar from "@/elements/landing-navbar";
-// import { Outlet } from "@remix-run/react";
 import Footer from "@/components/landing/footer";
-import { Shell } from "@/components/landing/shell";
 import { Button } from "@/components/ui/button";
 import { Link, Outlet } from "@remix-run/react";
 import { Separator } from "@/components/ui/separator";
@@ -20,16 +18,22 @@ export default function Layout() {
               to="/support/ticket"
               className="text-gray-500 dark:text-gray-400 underline"
             >
-              <Button className="mr-2" variant="link">
+              <Button
+                className="mr-2 text-white text-lg underline"
+                variant="link"
+              >
                 Submit a ticket
               </Button>
             </Link>
-            <Separator orientation="vertical" className="bg-white h-5" />
+            <Separator orientation="vertical" className="bg-white h-5 mr-2" />
             <Link
               to="/support/pricing"
               className="text-gray-500 dark:text-gray-400 underline"
             >
-              <Button className="mr-2" variant="link">
+              <Button
+                className="mr-2 text-white text-lg underline"
+                variant="link"
+              >
                 Pricing
               </Button>
             </Link>

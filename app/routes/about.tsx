@@ -6,7 +6,7 @@ import { Link } from "@remix-run/react";
 
 export function AboutUs() {
   return (
-    <Shell className="lg:px-32">
+    <Shell className="lg:px-32 mx-auto py-12 lg:py-16">
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
         About Us
       </h1>
