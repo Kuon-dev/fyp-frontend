@@ -231,6 +231,9 @@ importers:
       '@remix-run/dev':
         specifier: ^2.9.1
         version: 2.9.2(@remix-run/react@2.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5))(@remix-run/serve@2.9.2(typescript@5.4.5))(@types/node@20.12.12)(typescript@5.4.5)(vite@5.2.11(@types/node@20.12.12))
+      '@shikijs/monaco':
+        specifier: ^1.6.2
+        version: 1.6.2
       '@types/node':
         specifier: ^20.12.11
         version: 20.12.12
@@ -1816,6 +1819,12 @@ packages:
 
   '@shikijs/core@1.5.2':
     resolution: {integrity: sha512-wSAOgaz48GmhILFElMCeQypSZmj6Ru6DttOOtl3KNkdJ17ApQuGNCfzpk4cClasVrnIu45++2DBwG4LNMQAfaA==}
+
+  '@shikijs/core@1.6.2':
+    resolution: {integrity: sha512-guW5JeDzZ7uwOjTfCOFZ2VtVXk5tmkMzBYbKGfXsmAH1qYOej49L5jQDcGmwd6/OgvpmWhzO2GNJkQIFnbwLPQ==}
+
+  '@shikijs/monaco@1.6.2':
+    resolution: {integrity: sha512-0X/ud3naqebORTkXdC2dKNM3ymxMKxGBaS+H2qlWEG4O+UfEhdYdN9BFNFVibGwcnAft4dNNW+fIimYgBhZUpw==}
 
   '@tabler/icons-react@3.4.0':
     resolution: {integrity: sha512-hwRXZ//7B3d8FSb2loMj67s8UZeneCsOCs+Acv0KllWXS15brpFjdi6ROf/Vq5+vr1brFf+xmSTiQkKlEF1Yaw==}
@@ -6529,6 +6538,12 @@ snapshots:
     optional: true
 
   '@shikijs/core@1.5.2': {}
+
+  '@shikijs/core@1.6.2': {}
+
+  '@shikijs/monaco@1.6.2':
+    dependencies:
+      '@shikijs/core': 1.6.2
 
   '@tabler/icons-react@3.4.0(react@18.3.1)':
     dependencies:

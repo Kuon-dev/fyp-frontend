@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import {
   Link,
+  useNavigate,
   // useFetcher,
   // json,
   // useLoaderData,
@@ -56,6 +57,7 @@ const formSchema = z.object({
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const nav = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,9 +86,10 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         throw new Error(error.data.message);
       } else {
         // set cookie
-        const json = await res.json();
+        // const json = await res.json();
 
         toast.success("Login successful!");
+        nav("/dashboard");
         // redirect
       }
       setIsLoading(false);

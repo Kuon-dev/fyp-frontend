@@ -21,6 +21,7 @@ import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
 import { useDashboardStore } from "./stores/dashboard-store";
 import { useEffect } from "react";
+import { toast } from "sonner";
 // import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
 //
 
@@ -28,19 +29,33 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
 
+type Me = {
+  user: Omit<User, "passwordHash">;
+  profile: Profile;
+};
+
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
-  const user = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
-    headers: {
-      Cookie: cookieHeader ?? "",
-    },
-  }).then((res) => res.json());
-  console.log(user);
+  let user: Me | null = null;
+  try {
+    user = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
+      headers: {
+        Cookie: cookieHeader ?? "",
+      },
+    }).then((res) => {
+      if (res.ok) {
+        return res.json();
+      }
+    });
+  } catch (error) {
+    toast.error("An error occurred");
+    console.error(error);
+  }
 
   return json({
     showBanner: !cookie.accepted,
-    user: user ?? {},
+    userData: user as Me,
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
     },
@@ -81,8 +96,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const setUser = useDashboardStore((state) => state.setUser);
 
   useEffect(() => {
-    if (data?.user?.id) {
-      setUser(data.user);
+    const userData = data.userData as Me;
+    if (userData) {
+      setUser(data.userData);
     }
   });
   return (

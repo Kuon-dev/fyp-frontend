@@ -1,4 +1,7 @@
 import { useRef, useState, useEffect } from "react";
+import { getHighlighter } from "shiki";
+import { shikiToMonaco } from "@shikijs/monaco";
+
 // import { useDebounce } from '@/hooks/useDebounce';
 import {
   Menubar,
@@ -67,6 +70,11 @@ function CodeRepoEditorPreview() {
   const [renderValue, setRenderValue] = useState(editorValue);
   const editorOptions = useMonacoStore((state) => state.editorOptions);
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
+  const setEditorOptions = useMonacoStore((state) => state.setEditorOptions);
+
+  const handleChangeTheme = (theme: string) => {
+    setEditorOptions({ theme });
+  };
 
   useEffect(() => {
     // Remove react import statements
@@ -80,6 +88,32 @@ function CodeRepoEditorPreview() {
   }, [editorValue, cssValue]);
 
   const handleEditorBeforeMount = async (monaco: Monaco) => {
+    const highlighter = await getHighlighter({
+      themes: ["vitesse-dark", "vitesse-light"],
+      langs: [
+        // 'javascript',
+        "typescript",
+        // 'vue'
+      ],
+    });
+    console.log(highlighter);
+
+    // Register the languageIds first. Only registered languages will be highlighted.
+    // monaco.languages.register({ id: 'vue' })
+    // monaco.languages.register({ id: 'typescript' })
+    // monaco.languages.register({ id: 'javascript' })
+
+    // Register the themes from Shiki, and provide syntax highlighting for Monaco.
+    // shikiToMonaco(highlighter, monaco)
+    // handleChangeTheme('vitesse-dark')
+
+    // Create the editor
+    // const editor = monaco.editor.create(document.getElementById('container'), {
+    //   value: 'const a = 1',
+    //   language: 'javascript',
+    //   theme: 'vitesse-dark',
+    // })
+
     const ts = monaco.languages.typescript;
     ts.typescriptDefaults.setCompilerOptions({
       allowJs: true,

@@ -88,6 +88,7 @@
   "devDependencies": {
     "@playwright/test": "^1.44.0",
     "@remix-run/dev": "^2.9.1",
+    "@shikijs/monaco": "^1.6.2",
     "@types/node": "^20.12.11",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
