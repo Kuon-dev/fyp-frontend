@@ -1,17 +1,9 @@
 import { HTMLAttributes, useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import {
-  Link,
-  useNavigate,
-  // useFetcher,
-  // json,
-  // useLoaderData,
-  // useActionData,
-} from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { IconBrandFacebook, IconBrandGithub } from '@tabler/icons-react'
 import {
   Form,
   FormControl,
@@ -24,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { PasswordInput } from "@/components/custom/password-input";
 import { cn } from "@/lib/utils";
-// import { ActionFunctionArgs, redirect } from '@remix-run/node'
 
 interface UserAuthFormProps extends HTMLAttributes<HTMLDivElement> {}
 
@@ -156,6 +147,17 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
                 <span className="underline underline-offset-4 hover:text-primary">
                   {" "}
                   Sign up now!
+                </span>
+              </Link>
+            </p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Or{" "}
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-muted-foreground hover:opacity-75"
+              >
+                <span className="underline underline-offset-4 hover:text-primary">
+                  Forgot your password?{" "}
                 </span>
               </Link>
             </p>

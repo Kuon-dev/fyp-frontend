@@ -33,7 +33,7 @@ import Editor from "@monaco-editor/react";
 import type {
   IStandaloneCodeEditor,
   Monaco,
-} from "@/integrations/monaco/types";
+} from "@/integrations/monaco/native.types";
 import { DEFAULT_CSS_MONACO } from "@/integrations/monaco/constants";
 import { Layout, LayoutBody, LayoutHeader } from "@/components/custom/layout";
 import { Spinner } from "@/components/custom/spinner";

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
-import { configureMonaco } from "./utils";
-import type { IStandaloneCodeEditor } from "./types";
+import { configureMonaco } from "./native.utils";
+import type { IStandaloneCodeEditor } from "./native.types";
 
 interface MonacoEditorProps {
   value: string | undefined;

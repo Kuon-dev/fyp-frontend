@@ -1,6 +1,4 @@
 import * as React from "react";
-// import { useRouter } from "next/navigation"
-// import { useSignIn } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,10 +25,8 @@ type Inputs = z.infer<typeof checkEmailSchema>;
 
 export default function ForgotPasswordForm() {
   const nav = useNavigate();
-  // const { isLoaded, signIn } = useSignIn()
   const [loading, setLoading] = React.useState(false);
 
-  // react-hook-form
   const form = useForm<Inputs>({
     resolver: zodResolver(checkEmailSchema),
     defaultValues: {

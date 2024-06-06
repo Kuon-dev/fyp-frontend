@@ -1,4 +1,4 @@
-import type { Monaco, MonacoContext, NodeModuleDep } from "./types";
+import type { Monaco, MonacoContext, NodeModuleDep } from "./native.types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const getCdnUrl = (pkgName: string, pkgVersion: string, pkgPath: string) => {
