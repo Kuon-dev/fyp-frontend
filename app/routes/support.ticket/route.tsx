@@ -22,28 +22,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
 import { useState } from "react";
 import { Spinner } from "@/components/custom/spinner";
+import { NewTicketSchema, createTicket } from "@/lib/fetcher/support";
 
-const SupportFormSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255),
-  email: z.string().email("Invalid email").max(255),
-  title: z.string().min(1, "Title is required").max(255),
-  type: z.string().min(1, "type is required").max(255),
-  message: z
-    .string()
-    .min(1, "Message is required")
-    .max(10000, "Message is too long"),
-});
-
-type SupportFormData = z.infer<typeof SupportFormSchema>;
+type SupportFormData = z.infer<typeof NewTicketSchema>;
 
 function SupportCard() {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<SupportFormData>({
-    resolver: zodResolver(SupportFormSchema),
+    resolver: zodResolver(NewTicketSchema),
     defaultValues: {
       name: "",
       title: "",
@@ -55,36 +44,14 @@ function SupportCard() {
 
   const onSubmit = async (data: SupportFormData) => {
     setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/ticket/new`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            title: data.title,
-            // subject: data.type,
-            message: data.message,
-            type: data.type,
-          }),
-        },
-      );
-
-      const res = await response.json();
-      if (!response.ok) {
-        throw new Error(res.data.message);
-      }
-      toast("Your ticket has been submitted. We'll get back to you shortly.");
-    } catch (error) {
-      console.log(error);
-      toast(`An error occurred. ${error}`);
-    } finally {
-      setIsLoading(false);
-    }
+    await createTicket({
+      name: data.name,
+      email: data.email,
+      title: data.title,
+      message: data.message,
+      type: data.type,
+    });
+    setIsLoading(false);
   };
 
   return (

@@ -21,9 +21,7 @@ import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
 import { useDashboardStore } from "./stores/dashboard-store";
 import { useEffect } from "react";
-import { toast } from "sonner";
-// import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
-//
+import { getCurrentUserProfileData } from "./lib/fetcher/user";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -38,24 +36,11 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
   let user: Me | null = null;
-  try {
-    user = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
-      headers: {
-        Cookie: cookieHeader ?? "",
-      },
-    }).then((res) => {
-      if (res.ok) {
-        return res.json();
-      }
-    });
-  } catch (error) {
-    toast.error("An error occurred");
-    console.error(error);
-  }
+  if (cookieHeader) user = await getCurrentUserProfileData(cookieHeader);
 
   return json({
     showBanner: !cookie.accepted,
-    userData: user as Me,
+    userData: user,
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
     },
@@ -71,6 +56,7 @@ declare global {
 }
 
 export const action: ActionFunction = async ({ request }) => {
+  // set cookie consent
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
   console.log(request);

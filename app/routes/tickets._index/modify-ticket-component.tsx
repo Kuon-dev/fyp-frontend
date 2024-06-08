@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-// import { Shell } from "@/components/landing/shell";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
 import { Spinner } from "@/components/custom/spinner";
 import {
   Select,
@@ -22,71 +20,35 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ClientOnly } from "remix-utils/client-only";
+import {
+  EditTicketSchema,
+  fetchTicketData,
+  updateTicketStatus,
+} from "@/lib/fetcher/support";
 
-const SupportFormSchema = z.object({
-  status: z.string().min(1, "Status is required").max(255),
-});
-
-type SupportFormData = z.infer<typeof SupportFormSchema>;
+type SupportFormData = z.infer<typeof EditTicketSchema>;
 
 export function SupportCard({ ticketId }: { ticketId: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [initialData, setInitialData] = useState<SupportFormData | null>(null);
 
   const form = useForm<SupportFormData>({
-    resolver: zodResolver(SupportFormSchema),
+    resolver: zodResolver(EditTicketSchema),
     defaultValues: {
-      status: "",
+      status: initialData?.status || "todo",
     },
   });
 
   useEffect(() => {
-    const fetchTicketData = async () => {
-      try {
-        const response = await fetch(
-          `${window.ENV.BACKEND_URL}/api/v1/ticket/${ticketId}`,
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setInitialData(data);
-          form.reset({ status: data.status });
-        } else {
-          throw new Error(data.message);
-        }
-      } catch (error) {
-        console.error(error);
-        toast(`Failed to fetch ticket data. ${error}`);
-      }
+    const ticketData = async () => {
+      const data = await fetchTicketData(ticketId);
+      setInitialData(data);
     };
-
-    fetchTicketData();
+    ticketData();
   }, [ticketId, form]);
 
   const onSubmit = async (data: SupportFormData) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/ticket/${ticketId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: data.status }),
-        },
-      );
-
-      const res = await response.json();
-      if (!response.ok) {
-        throw new Error(res.data.message);
-      }
-      toast("Ticket status has been updated successfully.");
-    } catch (error) {
-      console.log(error);
-      toast(`An error occurred. ${error}`);
-    } finally {
-      setIsLoading(false);
-    }
+    await updateTicketStatus(ticketId, data, setIsLoading);
   };
 
   return (
