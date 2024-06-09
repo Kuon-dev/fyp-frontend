@@ -73,6 +73,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.4",
     "react-live": "^4.1.6",
+    "react-phone-number-input": "^3.4.3",
     "react-remove-scroll": "^2.5.5",
     "react-resizable-panels": "^2.0.19",
     "react-scroll": "^1.9.0",
