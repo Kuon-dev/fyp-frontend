@@ -1,4 +1,3 @@
-import Navbar from "@/elements/landing-navbar";
 import Footer from "@/components/landing/footer";
 import { Shell } from "@/components/landing/shell";
 import { Button } from "@/components/ui/button";

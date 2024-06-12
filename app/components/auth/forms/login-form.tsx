@@ -74,7 +74,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
       });
       if (!res.ok) {
         const error = (await res.json()) as LoginErrorSchema;
-        throw new Error(error.data.message);
+        throw new Error(error.message);
       } else {
         // set cookie
         // const json = await res.json();

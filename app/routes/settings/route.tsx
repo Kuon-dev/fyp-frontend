@@ -6,15 +6,18 @@ import {
   sellerSidebarLinks,
   buyerSidebarLinks,
 } from "@/components/dashboard/constants";
-import { Settings } from "lucide-react";
+import { Layout, Settings } from "lucide-react";
 import VerifyEmailComponent from "@/components/dashboard/verify-email";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Separator } from "@/components/ui/separator";
 import { IconTool, IconUser } from "@tabler/icons-react";
-import SidebarNav from "@/elements/sidebar-nav";
-import DashboardSidebar, { LinkProps } from "@/elements/dashboard-sidebar";
-import { Layout, LayoutBody } from "@/components/custom/layout";
+// import SidebarNav from "@/elements/sidebar-nav";
+// import DashboardSidebar, { LinkProps } from "@/elements/dashboard-sidebar";
+// import { Layout, LayoutBody } from "@/components/custom/layout";
+import DashboardSidebar, { LinkProps } from "@/components/dashboard/sidebar";
+import { LayoutBody } from "@/components/custom/layout";
+import SidebarNav from "@/components/dashboard/sidebar-settings";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (request.url === "/settings") return redirect("/settings/profile");

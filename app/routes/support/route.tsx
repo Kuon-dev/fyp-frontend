@@ -1,4 +1,4 @@
-import Navbar from "@/elements/landing-navbar";
+import Navbar from "@/components/landing/navbar";
 import Footer from "@/components/landing/footer";
 import { Button } from "@/components/ui/button";
 import { Link, Outlet } from "@remix-run/react";
