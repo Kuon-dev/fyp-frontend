@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { z } from "zod";
+import { showErrorToast } from "../handle-error";
 
 const backendURL =
   typeof window !== "undefined"
@@ -28,26 +29,6 @@ export const NewTicketSchema = z.object({
     .min(1, "Message is required")
     .max(10000, "Message is too long"),
 });
-
-const unknownError = "An unknown error occurred";
-
-export function getErrorMessage(err: unknown) {
-  if (err instanceof z.ZodError) {
-    return err.errors[0]?.message ?? unknownError;
-  } else if (err instanceof Error) {
-    return err.message;
-  } else {
-    return unknownError;
-  }
-}
-
-export function showErrorToast(err: unknown) {
-  const errorMessage = getErrorMessage(err);
-  console.log({ errorMessage });
-
-  return toast.error(errorMessage);
-}
-
 /**
  * Create a new support ticket.
  *
