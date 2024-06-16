@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, Outlet } from "@remix-run/react";
-import DashboardSidebar, { LinkProps } from "@/elements/dashboard-sidebar";
 import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
+import DashboardSidebar, { LinkProps } from "@/components/dashboard/sidebar";
 import {
   adminSidebarLinks,
   moderatorSidebarLinks,

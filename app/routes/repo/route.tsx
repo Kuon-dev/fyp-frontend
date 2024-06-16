@@ -1,7 +1,7 @@
 import { Outlet } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import DashboardSidebar, { LinkProps } from "@/elements/dashboard-sidebar";
+import DashboardSidebar, { LinkProps } from "@/components/dashboard/sidebar";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { checkAuthCookie } from "@/lib/router-guard";
 import {

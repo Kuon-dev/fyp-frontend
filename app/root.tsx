@@ -19,18 +19,14 @@ import type {
 import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
-import { useDashboardStore } from "./stores/dashboard-store";
+import { Me, useDashboardStore } from "./stores/dashboard-store";
 import { useEffect } from "react";
 import { getCurrentUserProfileData } from "./lib/fetcher/user";
+import BannedBanner from "./components/auth/banned";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
-
-type Me = {
-  user: Omit<User, "passwordHash">;
-  profile: Profile;
-};
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -78,13 +74,19 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>() as {
+    showBanner: boolean;
+    userData: Me | null;
+    ENV: {
+      BACKEND_URL: string;
+    };
+  };
   const setUser = useDashboardStore((state) => state.setUser);
 
   useEffect(() => {
-    const userData = data.userData as Me;
+    const userData = data.userData;
     if (userData) {
-      setUser(data.userData);
+      setUser(userData);
     }
   });
   return (
@@ -92,6 +94,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="https://js.stripe.com/v3/"></script>
         <Meta />
         <Links />
       </head>
@@ -103,6 +106,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           }}
         ></script>
         <ScrollRestoration />
+
+        {data.userData?.user.bannedUntil && <BannedBanner />}
         {data.showBanner && <CookieBanner />}
         <Scripts />
       </body>
