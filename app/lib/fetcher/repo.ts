@@ -233,6 +233,27 @@ export const getReposByUser = async (
   }
 };
 
+export const getRepoBySession = async (
+  cookieHeader: string,
+): Promise<RepoResponse | null> => {
+  try {
+    const response = await fetch(`${backendURL}/repos/user/`, {
+      headers: {
+        Cookie: cookieHeader,
+      },
+    });
+    const data = await response.json();
+    if (response.ok) {
+      return RepoSchema.parse(data);
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error: unknown) {
+    showErrorToast(error);
+    return null;
+  }
+};
+
 /**
  * Get all repositories.
  * @returns A list of all repositories.

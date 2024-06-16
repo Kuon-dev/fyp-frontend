@@ -2,11 +2,7 @@
 import { toast } from "sonner";
 import { showErrorToast } from "../handle-error";
 import { z } from "zod";
-
-type Me = {
-  user: Omit<User, "passwordHash">;
-  profile: Profile;
-};
+import { Me } from "@/stores/dashboard-store";
 
 export const getCurrentUserProfileData = async (
   cookieHeader: string,

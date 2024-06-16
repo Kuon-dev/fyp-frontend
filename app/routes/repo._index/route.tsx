@@ -35,80 +35,24 @@ import {
 import { ClientOnly } from "remix-utils/client-only";
 
 import { ProjectForm } from "./form";
+import { LoaderFunction, json, redirect } from "@remix-run/node";
+import { getRepoBySession } from "@/lib/fetcher/repo";
+import { useLoaderData } from "@remix-run/react";
 
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  iframeSrc: string;
-  link: string;
-}
+export const loader: LoaderFunction = async ({ request }) => {
+  if (!request.headers.get("Cookie")) throw redirect("/login", 401);
 
-const projects: Project[] = [
-  {
-    id: 1,
-    title: "Project 1",
-    description: "A simple landing page built with HTML, CSS, and JavaScript.",
-    iframeSrc: "https://example.com/iframe1",
-    link: "#",
-  },
-  {
-    id: 2,
-    title: "Project 2",
-    description:
-      "A responsive e-commerce website with a shopping cart and checkout process.",
-    iframeSrc: "https://example.com/iframe2",
-    link: "#",
-  },
-  {
-    id: 3,
-    title: "Project 3",
-    description:
-      "A data visualization dashboard with interactive charts and graphs.",
-    iframeSrc: "https://example.com/iframe3",
-    link: "#",
-  },
-  {
-    id: 4,
-    title: "Project 4",
-    description:
-      "A mobile-first web application for managing personal tasks and to-do lists.",
-    iframeSrc: "https://example.com/iframe4",
-    link: "#",
-  },
-  {
-    id: 5,
-    title: "Project 5",
-    description: "A web-based game built with HTML5 canvas and JavaScript.",
-    iframeSrc: "https://example.com/iframe5",
-    link: "#",
-  },
-  {
-    id: 6,
-    title: "Project 6",
-    description:
-      "A responsive portfolio website showcasing my design and development work.",
-    iframeSrc: "https://example.com/iframe6",
-    link: "#",
-  },
-  {
-    id: 7,
-    title: "Project 7",
-    description:
-      "A web application for managing and tracking personal finances.",
-    iframeSrc: "https://example.com/iframe7",
-    link: "#",
-  },
-  {
-    id: 8,
-    title: "Project 8",
-    description: "A description for project 8.",
-    iframeSrc: "https://example.com/iframe8",
-    link: "#",
-  },
-];
+  const projects = getRepoBySession(request.headers.get("Cookie") ?? "");
+
+  return json({
+    projects,
+  });
+};
 
 export default function Component() {
+  const { projects } = useLoaderData<typeof loader>() as {
+    projects: BackendCodeRepo[];
+  };
   return (
     <ClientOnly>
       {() => (
@@ -162,10 +106,10 @@ export default function Component() {
                     key={project.id}
                     className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
                   >
-                    <Link to={project.link} className="block">
+                    <Link to={`/projects/${project.id}`} className="block">
                       <iframe
-                        src={project.iframeSrc}
-                        title={project.title}
+                        src={`https://example.com/project/${project.id}`}
+                        title={project.name}
                         width="100%"
                         height="200"
                         className="w-full h-48 object-cover"
@@ -175,7 +119,7 @@ export default function Component() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                          {project.title}
+                          {project.name}
                         </h3>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

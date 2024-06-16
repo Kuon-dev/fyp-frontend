@@ -1,5 +1,11 @@
 import React from "react";
-import { Link, Outlet } from "@remix-run/react";
+import {
+  // Link,
+  Outlet,
+  // json,
+  redirect,
+  useNavigate,
+} from "@remix-run/react";
 import DashboardSidebar, { LinkProps } from "@/components/dashboard/sidebar";
 import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
 import {
@@ -11,13 +17,25 @@ import {
 import { Settings } from "lucide-react";
 import VerifyEmailComponent from "@/components/dashboard/verify-email";
 import { useDashboardStore } from "@/stores/dashboard-store";
+import { LoaderFunction } from "@remix-run/node";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const authCookie = cookieHeader?.split(";").find((cookie) => cookie.includes("auth_session"));
+  if (!authCookie)
+    throw redirect("/login", 401);
+
+  return ""
+};
 
 export default function DashboardLayout() {
+  const nav = useNavigate();
   const [sidebarLinks, setSidebarLinks] = React.useState<LinkProps[]>([]);
   const [user] = useDashboardStore((state) => [state.user]);
+  if (!user) nav('/login');
   React.useEffect(() => {
-    if (!user) return;
-    switch (user.role) {
+    if (!user) return ;
+    switch (user.user.role) {
       case "admin":
         setSidebarLinks(adminSidebarLinks);
         break;
@@ -52,7 +70,7 @@ export default function DashboardLayout() {
           <LayoutBody>
             <main className="">
               <Outlet />
-              {user?.emailVerified ? <div /> : <VerifyEmailComponent />}
+              {user?.user.emailVerified ? <div /> : <VerifyEmailComponent />}
             </main>
           </LayoutBody>
         </Layout>
