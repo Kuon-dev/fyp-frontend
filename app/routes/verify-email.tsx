@@ -1,16 +1,18 @@
 import { getErrorMessage } from "@/lib/handle-error";
-import { LoaderFunction, json } from "@remix-run/node";
+import { LoaderFunction, json, redirect } from "@remix-run/node";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const cookieHeader = request.headers.get("Cookie");
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const token = url.searchParams.get("auth_session");
+
+  // const cookieHeader = request.headers.get("Cookie");
   try {
-    const url = new URL(request.url);
-    const code = url.searchParams.get("code");
     const res = await fetch(`${process.env.BACKEND_URL}/api/v1/verify-email`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: cookieHeader ?? "",
+        Cookie: token ?? "",
       },
       body: JSON.stringify({
         code,
@@ -36,8 +38,9 @@ export const loader: LoaderFunction = async ({ request }) => {
       },
     );
   }
-
-  return json({
-    message: "Email verification successful",
+  return redirect("/dashboard", {
+    headers: {
+      "Set-Cookie": token ?? "",
+    },
   });
 };

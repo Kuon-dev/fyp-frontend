@@ -64,6 +64,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     userData: user,
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
+      APP_URL: process.env.APP_URL,
     },
   });
 };
@@ -72,6 +73,7 @@ declare global {
   interface Window {
     ENV: {
       BACKEND_URL: string;
+      APP_URL: string;
     };
   }
 }

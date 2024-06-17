@@ -38,14 +38,13 @@ export function ProjectForm() {
       tags: [],
       price: undefined,
       visibility: "public",
-      iframeSrc: "",
     },
   });
 
   const onSubmit = async (data: ProjectFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/v1/projects", {
+      const response = await fetch("/api/v1/repos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -203,19 +202,6 @@ export function ProjectForm() {
                     </Label>
                   </div>
                 </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="iframeSrc"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Iframe Source URL</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Enter iframe URL" />
               </FormControl>
               <FormMessage />
             </FormItem>
