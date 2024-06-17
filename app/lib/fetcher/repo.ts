@@ -68,6 +68,7 @@ export const createRepo = async (
   try {
     const response = await fetch(`${backendURL}/api/v1/repos`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -239,7 +240,8 @@ export const getRepoBySession = async (
   cookieHeader: string,
 ): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/api/v1/repos/user/`, {
+    const response = await fetch(`${backendURL}/api/v1/repos/user`, {
+      credentials: "include",
       headers: {
         Cookie: cookieHeader,
       },
@@ -264,7 +266,12 @@ export const getRepoBySession = async (
  */
 export const getAllRepos = async (): Promise<RepoResponse[] | null> => {
   try {
-    const response = await fetch(`${backendURL}/api/v1/repos/all`);
+    const response = await fetch(`${backendURL}/api/v1/repos/all`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     const data = await response.json();
     if (response.ok) {
       return data.map((repo: unknown) => RepoSchema.parse(repo));

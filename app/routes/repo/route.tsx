@@ -12,6 +12,7 @@ import {
 } from "@/components/dashboard/constants";
 import { Settings } from "lucide-react";
 import React from "react";
+import { useDashboardStore } from "@/stores/dashboard-store";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (request.url === "/repo") return redirect("/settings/profile");
@@ -29,9 +30,9 @@ type UserRole = "admin" | "moderator" | "seller" | "buyer";
 
 export default function DashboardLayout() {
   const [sidebarLinks, setSidebarLinks] = React.useState<LinkProps[]>([]);
-  const userRole = "admin"; // Replace this with dynamic role determination
+  const [user] = useDashboardStore((state) => [state.user]);
   React.useEffect(() => {
-    switch (userRole as UserRole) {
+    switch (user?.user.role) {
       case "admin":
         setSidebarLinks(adminSidebarLinks);
         break;

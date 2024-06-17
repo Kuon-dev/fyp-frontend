@@ -48,6 +48,7 @@ export function ProjectForm() {
     setIsLoading(true);
     try {
       const response = await fetch(`${window.ENV.BACKEND_URL}/api/v1/repos`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
