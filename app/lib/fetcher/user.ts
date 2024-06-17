@@ -4,6 +4,20 @@ import { showErrorToast } from "../handle-error";
 import { z } from "zod";
 import { Me } from "@/stores/dashboard-store";
 
+const backendURL =
+  typeof window !== "undefined"
+    ? window.ENV.BACKEND_URL
+    : process.env.BACKEND_URL;
+
+/*
+ * Fetcher functions for user data.
+ * These functions are used to interact with the backend API.
+ * SERVER SIDE ONLY
+ *
+ * @param cookieHeader - The cookie header to send with the request.
+ * @returns The user data or null if failed.
+ */
+
 export const getCurrentUserProfileData = async (
   cookieHeader: string,
 ): Promise<Me | null> => {
@@ -14,22 +28,18 @@ export const getCurrentUserProfileData = async (
       },
     });
     const data = await response.json();
-    console.log(data);
     if (response.ok) {
       return data as Me;
     } else {
       console.log(data.message);
+      console.log(data.name);
+      // if (data.name === "UnAuthorizedException)
       return null;
     }
   } catch (error) {
     return null;
   }
 };
-
-const backendURL =
-  typeof window !== "undefined"
-    ? window.ENV.BACKEND_URL
-    : process.env.BACKEND_URL;
 
 // Define Zod schemas based on Prisma model
 const UserSchema = z.object({
@@ -255,5 +265,31 @@ export const updateUserProfile = async (
   } catch (error: unknown) {
     showErrorToast(error);
     return null;
+  }
+};
+
+/**
+ * Get a user's profile.
+ * SERVER ONLY
+ *
+ * @param email - The email of the user.
+ * @returns The user profile data or null if not found.
+ */
+
+export const sendVerifyEmailCodeFromUser = async (
+  cookieHeader: string,
+): Promise<boolean> => {
+  console.log(cookieHeader);
+  const response = await fetch(`${backendURL}/api/v1/send-verify-code`, {
+    method: "POST",
+    headers: {
+      Cookie: cookieHeader,
+    },
+  });
+  const data = await response.json();
+  if (response.ok) {
+    return true;
+  } else {
+    throw new Error(data.message);
   }
 };

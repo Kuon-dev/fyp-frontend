@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [remix(), tsconfigPaths()],
   ssr: {
     noExternal: [
+      "remix-utils",
       // "@radix-ui/react-dialog",
       // "@radix-ui/react-tooltip",
       // "@radix-ui/react-accordion",

@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { useNavigate } from "@remix-run/react";
 import { ClientOnly } from "remix-utils/client-only";
+import { showErrorToast } from "@/lib/handle-error";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { sendVerifyEmailCodeFromUser } from "@/lib/fetcher/user";
 
 export default function VerifyEmailComponent() {
   const nav = useNavigate();
@@ -24,14 +27,19 @@ export default function VerifyEmailComponent() {
                   If you didn't receive the email, please check your spam folder
                   or click the button below to resend the verification email.
                 </p>
-                <Button className="w-full">Resend Verification Email</Button>
-                <Button
-                  className="w-full mt-4"
-                  variant="outline"
-                  onClick={() => nav("/dashboard")}
-                >
-                  Refresh
-                </Button>
+                <form method="post" action="/dashboard">
+                  <Button className="w-full" type="submit">
+                    Resend Verification Email
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full mt-4"
+                    variant="outline"
+                    onClick={() => nav("/dashboard")}
+                  >
+                    Refresh
+                  </Button>
+                </form>
               </div>
             </div>
           </AlertDialogContent>

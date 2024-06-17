@@ -15,6 +15,7 @@ import type {
   LinksFunction,
   LoaderFunction,
   ActionFunction,
+  SerializeFrom,
 } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
@@ -23,6 +24,23 @@ import { Me, useDashboardStore } from "./stores/dashboard-store";
 import { useEffect } from "react";
 import { getCurrentUserProfileData } from "./lib/fetcher/user";
 import BannedBanner from "./components/auth/banned";
+import {
+  ExternalScripts,
+  ExternalScriptsHandle,
+} from "remix-utils/external-scripts";
+
+type LoaderData = SerializeFrom<typeof loader>;
+
+export const handle: ExternalScriptsHandle<LoaderData> = {
+  scripts({ id, data, params, matches, location, parentsData }) {
+    return [
+      {
+        src: "https://js.stripe.com/v3/",
+        crossOrigin: "anonymous",
+      },
+    ];
+  },
+};
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -32,7 +50,14 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
   let user: Me | null = null;
-  if (cookieHeader) user = await getCurrentUserProfileData(cookieHeader);
+  try {
+    if (cookieHeader) user = await getCurrentUserProfileData(cookieHeader);
+  } catch (e) {
+    console.log(e);
+    if (e instanceof Response && e.status === 401) {
+      return redirect("/login");
+    }
+  }
 
   return json({
     showBanner: !cookie.accepted,
@@ -55,9 +80,7 @@ export const action: ActionFunction = async ({ request }) => {
   // set cookie consent
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
-  console.log(request);
   const formData = await request.formData();
-  // console.log('POST', formData.get("analytics"))
   if (formData.get("analytics")) {
     cookie.accepted = true;
     cookie.value = {
@@ -94,7 +117,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script src="https://js.stripe.com/v3/"></script>
         <Meta />
         <Links />
       </head>
@@ -106,7 +128,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           }}
         ></script>
         <ScrollRestoration />
-
+        <ExternalScripts />
         {data.userData?.user.bannedUntil && <BannedBanner />}
         {data.showBanner && <CookieBanner />}
         <Scripts />

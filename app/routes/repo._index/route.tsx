@@ -42,8 +42,10 @@ import { useLoaderData } from "@remix-run/react";
 export const loader: LoaderFunction = async ({ request }) => {
   if (!request.headers.get("Cookie")) throw redirect("/login", 401);
 
-  const projects = getRepoBySession(request.headers.get("Cookie") ?? "");
+  const projects =
+    (await getRepoBySession(request.headers.get("Cookie") ?? "")) ?? [];
 
+  console.log(projects);
   return json({
     projects,
   });
@@ -51,7 +53,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Component() {
   const { projects } = useLoaderData<typeof loader>() as {
-    projects: BackendCodeRepo[];
+    projects: BackendCodeRepo[] | [];
   };
   return (
     <ClientOnly>

@@ -66,7 +66,7 @@ export const createRepo = async (
   data: RepoData,
 ): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/repos`, {
+    const response = await fetch(`${backendURL}/api/v1/repos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +93,7 @@ export const createRepo = async (
  */
 export const getRepoById = async (id: string): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/repos/${id}`);
+    const response = await fetch(`${backendURL}/api/v1/repos/${id}`);
     const data = await response.json();
     if (response.ok) {
       return RepoSchema.parse(data);
@@ -117,7 +117,7 @@ export const updateRepo = async (
   data: UpdateRepoData,
 ): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/repos/${id}`, {
+    const response = await fetch(`${backendURL}/api/v1/repos/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -143,7 +143,7 @@ export const updateRepo = async (
  */
 export const deleteRepo = async (id: string): Promise<void> => {
   try {
-    const response = await fetch(`${backendURL}/repos/${id}`, {
+    const response = await fetch(`${backendURL}/api/v1/repos/${id}`, {
       method: "DELETE",
     });
 
@@ -169,7 +169,7 @@ export const getPaginatedRepos = async (
 ): Promise<{ data: RepoResponse[]; total: number } | null> => {
   try {
     const response = await fetch(
-      `${backendURL}/repos?page=${page}&limit=${limit}`,
+      `${backendURL}/api/v1/repos?page=${page}&limit=${limit}`,
     );
     const data = await response.json();
     if (response.ok) {
@@ -198,7 +198,9 @@ export const searchRepos = async (
     SearchParamsSchema.parse(params) as Record<string, string>,
   ).toString();
   try {
-    const response = await fetch(`${backendURL}/repos/search?${queryString}`);
+    const response = await fetch(
+      `${backendURL}/api/v1/repos/search?${queryString}`,
+    );
     const data = await response.json();
     if (response.ok) {
       return data.map((repo: unknown) => RepoSchema.parse(repo));
@@ -220,7 +222,7 @@ export const getReposByUser = async (
   userId: string,
 ): Promise<RepoResponse[] | null> => {
   try {
-    const response = await fetch(`${backendURL}/repos/user/${userId}`);
+    const response = await fetch(`${backendURL}/api/v1/repos/user/${userId}`);
     const data = await response.json();
     if (response.ok) {
       return data.map((repo: unknown) => RepoSchema.parse(repo));
@@ -237,7 +239,7 @@ export const getRepoBySession = async (
   cookieHeader: string,
 ): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/repos/user/`, {
+    const response = await fetch(`${backendURL}/api/v1/repos/user/`, {
       headers: {
         Cookie: cookieHeader,
       },
@@ -260,7 +262,7 @@ export const getRepoBySession = async (
  */
 export const getAllRepos = async (): Promise<RepoResponse[] | null> => {
   try {
-    const response = await fetch(`${backendURL}/repos/all`);
+    const response = await fetch(`${backendURL}/api/v1/repos/all`);
     const data = await response.json();
     if (response.ok) {
       return data.map((repo: unknown) => RepoSchema.parse(repo));

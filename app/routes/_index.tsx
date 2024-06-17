@@ -18,8 +18,11 @@ import { ClientOnly } from "remix-utils/client-only";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Kortex" },
+    {
+      name: "description",
+      content: "Next generation e-commerce application for developers",
+    },
   ];
 };
 
