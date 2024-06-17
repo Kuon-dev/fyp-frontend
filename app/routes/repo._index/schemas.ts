@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ProjectFormSchema = z.object({
+export const NewRepoSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   language: z.string().min(1, "Language is required"),
@@ -10,4 +10,4 @@ export const ProjectFormSchema = z.object({
   iframeSrc: z.string().url("Invalid URL").optional(),
 });
 
-export type ProjectFormData = z.infer<typeof ProjectFormSchema>;
+export type NewRepoSchemaType = z.infer<typeof NewRepoSchema>;

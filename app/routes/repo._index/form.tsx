@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/custom/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ProjectFormSchema, ProjectFormData } from "./schemas";
+import { NewRepoSchema, NewRepoSchemaType } from "./schemas";
 import {
   Form,
   FormControl,
@@ -19,37 +19,40 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 export function ProjectForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
 
-  const form = useForm<ProjectFormData>({
-    resolver: zodResolver(ProjectFormSchema),
+  const form = useForm<NewRepoSchemaType>({
+    resolver: zodResolver(NewRepoSchema),
     defaultValues: {
       name: "",
       description: "",
       language: "",
       tags: [],
-      price: undefined,
+      price: 0,
       visibility: "public",
     },
   });
 
-  const onSubmit = async (data: ProjectFormData) => {
+  const onSubmit = async (data: NewRepoSchemaType) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/v1/repos", {
+      const response = await fetch(`${window.ENV.BACKEND_URL}/api/v1/repos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, tags }),
       });
 
       const res = await response.json();
@@ -63,6 +66,24 @@ export function ProjectForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTagInput(e.target.value);
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+        setTags([...tags, tagInput.trim()]);
+      }
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag));
   };
 
   return (
@@ -106,8 +127,8 @@ export function ProjectForm() {
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="jsx">JSX</SelectItem>
-                    <SelectItem value="tsx">TSX</SelectItem>
+                    <SelectItem value="JSX">JSX</SelectItem>
+                    <SelectItem value="TSX">TSX</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -118,49 +139,28 @@ export function ProjectForm() {
         <FormField
           control={form.control}
           name="tags"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormLabel>Tags</FormLabel>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  onCheckedChange={(checked) =>
-                    field.onChange(
-                      checked
-                        ? [...(field.value ?? []), "Tag 1"]
-                        : (field.value ?? []).filter((tag) => tag !== "Tag 1"),
-                    )
-                  }
-                  checked={field.value?.includes("Tag 1") ?? false}
+              <FormControl>
+                <Input
+                  value={tagInput}
+                  onChange={handleTagInputChange}
+                  onKeyDown={handleTagInputKeyDown}
+                  placeholder="Enter tags and press comma"
                 />
-                <Label htmlFor="tag-1" className="font-normal">
-                  Tag 1
-                </Label>
-                <Checkbox
-                  onCheckedChange={(checked) =>
-                    field.onChange(
-                      checked
-                        ? [...(field.value ?? []), "Tag 2"]
-                        : (field.value ?? []).filter((tag) => tag !== "Tag 2"),
-                    )
-                  }
-                  checked={field.value?.includes("Tag 2") ?? false}
-                />
-                <Label htmlFor="tag-2" className="font-normal">
-                  Tag 2
-                </Label>
-                <Checkbox
-                  onCheckedChange={(checked) =>
-                    field.onChange(
-                      checked
-                        ? [...(field.value ?? []), "Tag 3"]
-                        : (field.value ?? []).filter((tag) => tag !== "Tag 3"),
-                    )
-                  }
-                  checked={field.value?.includes("Tag 3") ?? false}
-                />
-                <Label htmlFor="tag-3" className="font-normal">
-                  Tag 3
-                </Label>
+              </FormControl>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {tags.map((tag, index) => (
+                  <Badge key={index} className="flex items-center gap-1">
+                    {tag}
+                    <X
+                      size={16}
+                      className="cursor-pointer"
+                      onClick={() => removeTag(tag)}
+                    />
+                  </Badge>
+                ))}
               </div>
               <FormMessage />
             </FormItem>

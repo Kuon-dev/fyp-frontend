@@ -89,7 +89,10 @@ export default function Component() {
                   Your Codebase
                 </h1>
                 <div className="flex items-center gap-4">
-                  <Dialog open={dialogOpen}>
+                  <Dialog
+                    open={dialogOpen}
+                    onOpenChange={(e) => setDialogOpen(e)}
+                  >
                     <div className="relative">
                       <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <Input

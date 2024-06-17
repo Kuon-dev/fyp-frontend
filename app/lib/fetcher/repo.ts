@@ -246,7 +246,9 @@ export const getRepoBySession = async (
     });
     const data = await response.json();
     if (response.ok) {
-      return RepoSchema.parse(data);
+      console.log(data);
+      return data;
+      // return RepoSchema.parse(data);
     } else {
       throw new Error(data.message);
     }
