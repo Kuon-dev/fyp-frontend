@@ -1,7 +1,7 @@
 // src/stores/search-store.ts
 import { create } from "zustand";
 
-type SearchResultType = {
+export type SearchResultType = {
   id: string;
   name: string;
   description: string;

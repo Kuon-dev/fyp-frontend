@@ -1,5 +1,5 @@
 // src/components/SearchAndFilter.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 // import { SearchFilterSchema, SearchFilterSchemaType } from "./schemas";
@@ -28,12 +28,21 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command.client";
-import { Check, ChevronsUpDown, Store } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  // Store,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSearchStore } from "@/stores/search-store";
+import { SearchResultType, useSearchStore } from "@/stores/search-store";
 import { showErrorToast } from "@/lib/handle-error";
 import { z } from "zod";
 import { RepoCard } from "@/components/repo/card";
+import { Shell } from "@/components/landing/shell";
+import { LoaderFunction, json, redirect } from "@remix-run/node";
+import { getPaginatedRepos } from "@/lib/fetcher/repo";
+import { useLoaderData } from "@remix-run/react";
+import { Spinner } from "@/components/custom/spinner";
 
 export const SearchFilterSchema = z
   .object({
@@ -48,7 +57,22 @@ export const SearchFilterSchema = z
 
 export type SearchFilterSchemaType = z.infer<typeof SearchFilterSchema>;
 
+export const loader: LoaderFunction = async ({ request }) => {
+  const repos = await getPaginatedRepos();
+
+  return json({
+    repos,
+  });
+};
+
 export default function SearchAndFilter() {
+  const { repos } = useLoaderData<typeof loader>() as {
+    repos: {
+      data: SearchResultType[] | null;
+      total: number;
+    };
+  };
+
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -65,6 +89,11 @@ export default function SearchAndFilter() {
       language: "",
     },
   });
+
+  useEffect(() => {
+    if (!repos.data) return;
+    setResults(repos.data);
+  }, [repos]);
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
@@ -107,121 +136,138 @@ export default function SearchAndFilter() {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSearch)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="searchQuery"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Search</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Search..." />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="tags"
-          render={() => (
-            <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <FormControl>
-                <Input
-                  value={tagInput}
-                  onChange={handleTagInputChange}
-                  onKeyDown={handleTagInputKeyDown}
-                  placeholder="Enter tags and press comma"
-                />
-              </FormControl>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map((tag, index) => (
-                  <Badge key={index} className="flex items-center gap-1">
-                    {tag}
-                    <Check
-                      size={16}
-                      className="cursor-pointer"
-                      onClick={() => removeTag(tag)}
+    <>
+      <Shell>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSearch)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="searchQuery"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Search</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Search..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tags"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={tagInput}
+                      onChange={handleTagInputChange}
+                      onKeyDown={handleTagInputKeyDown}
+                      placeholder="Enter tags and press comma"
                     />
-                  </Badge>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="language"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Language</FormLabel>
-              <FormControl>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={form.formState.isValid}
-                      className="w-full justify-between"
-                    >
-                      {field.value || "Select language"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
-                    <Command>
-                      <CommandInput placeholder="Search language..." />
-                      <CommandList>
-                        <CommandEmpty>No option found.</CommandEmpty>
-                        <CommandGroup>
-                          {[
-                            { value: "JSX", label: "JavaScript" },
-                            { value: "TSX", label: "TypeScript" },
-                            // Add more options as needed
-                          ].map((option) => (
-                            <CommandItem
-                              key={option.value}
-                              value={option.value}
-                              onSelect={(currentValue) => {
-                                field.onChange(
-                                  currentValue === field.value
-                                    ? ""
-                                    : currentValue,
-                                );
-                                form.setValue("language", currentValue);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === option.value
-                                    ? "opacity-100"
-                                    : "opacity-0",
-                                )}
-                              />
-                              {option.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Searching..." : "Search"}
-        </Button>
-      </form>
-
-      {results.length > 0 &&
-        results.map((item) => <RepoCard repo={item} key={item.id} />)}
-    </Form>
+                  </FormControl>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {tags.map((tag, index) => (
+                      <Badge key={index} className="flex items-center gap-1">
+                        {tag}
+                        <Check
+                          size={16}
+                          className="cursor-pointer"
+                          onClick={() => removeTag(tag)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="language"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Language</FormLabel>
+                  <FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={form.formState.isValid}
+                          className="w-full justify-between"
+                        >
+                          {field.value || "Select language"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search language..." />
+                          <CommandList>
+                            <CommandEmpty>No option found.</CommandEmpty>
+                            <CommandGroup>
+                              {[
+                                { value: "JSX", label: "JavaScript" },
+                                { value: "TSX", label: "TypeScript" },
+                                // Add more options as needed
+                              ].map((option) => (
+                                <CommandItem
+                                  key={option.value}
+                                  value={option.value}
+                                  onSelect={(currentValue) => {
+                                    field.onChange(
+                                      currentValue === field.value
+                                        ? ""
+                                        : currentValue,
+                                    );
+                                    form.setValue("language", currentValue);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === option.value
+                                        ? "opacity-100"
+                                        : "opacity-0",
+                                    )}
+                                  />
+                                  {option.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Searching..." : "Search"}
+            </Button>
+          </form>
+        </Form>
+      </Shell>
+      {results.length > 0 ? (
+        <Shell className="mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {results.map((item) => (
+              <RepoCard repo={item} key={item.id} />
+            ))}
+          </div>
+        </Shell>
+      ) : (
+        <div className="flex items-center justify-center mt-4">
+          <Spinner />
+        </div>
+      )}
+    </>
   );
 }

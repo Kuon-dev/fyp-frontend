@@ -162,6 +162,7 @@ export const deleteRepo = async (id: string): Promise<void> => {
  * Get paginated repositories.
  * @param page - The page number for pagination.
  * @param limit - The number of items per page.
+ * @param userId - Optional user ID to prioritize repos based on recent searches.
  * @returns The paginated repositories data.
  */
 export const getPaginatedRepos = async (
@@ -169,13 +170,18 @@ export const getPaginatedRepos = async (
   limit: number = 10,
 ): Promise<{ data: RepoResponse[]; total: number } | null> => {
   try {
-    const response = await fetch(
-      `${backendURL}/api/v1/repos?page=${page}&limit=${limit}`,
-    );
+    const queryString = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    }).toString();
+
+    const response = await fetch(`${backendURL}/api/v1/repos?${queryString}`, {
+      credentials: "include",
+    });
     const data = await response.json();
     if (response.ok) {
       return {
-        data: data.data.map((repo: unknown) => RepoSchema.parse(repo)),
+        data: data.repos,
         total: data.total,
       };
     } else {
