@@ -5,9 +5,10 @@ type SearchResultType = {
   id: string;
   name: string;
   description: string;
-  tags: string[];
   language: string;
-  visibility: string;
+  tags: string[];
+  price: number;
+  visibility: BackendVisibility;
 };
 
 type SearchStoreType = {

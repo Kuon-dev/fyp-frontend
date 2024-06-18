@@ -34,8 +34,7 @@ import {
 } from "lucide-react";
 import { ClientOnly } from "remix-utils/client-only";
 import { Shell } from "@/components/landing/shell";
-
-import { ProjectForm } from "./form";
+import { RepoForm } from "@/components/repo/new-repo-form";
 import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { getRepoBySession } from "@/lib/fetcher/repo";
 import { Link, useLoaderData } from "@remix-run/react";
@@ -115,7 +114,7 @@ export default function Component() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
-                        <ProjectForm />
+                        <RepoForm />
                       </div>
                       <DialogFooter>
                         <Button

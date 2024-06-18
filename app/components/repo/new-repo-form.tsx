@@ -1,9 +1,8 @@
-// src/components/RepoForm.tsx
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/custom/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NewRepoSchema, NewRepoSchemaType } from "./schemas";
+import { NewRepoSchema, NewRepoSchemaType } from "./constants";
 import {
   Form,
   FormControl,

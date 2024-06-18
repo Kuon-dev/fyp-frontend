@@ -28,11 +28,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command.client";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchStore } from "@/stores/search-store";
 import { showErrorToast } from "@/lib/handle-error";
 import { z } from "zod";
+import { RepoCard } from "@/components/repo/card";
 
 export const SearchFilterSchema = z
   .object({
@@ -47,54 +48,14 @@ export const SearchFilterSchema = z
 
 export type SearchFilterSchemaType = z.infer<typeof SearchFilterSchema>;
 
-interface ResultsListProps {
-  renderItem: (item: any) => React.ReactNode;
-}
-
-interface ResultItemProps {
-  item: {
-    id: string;
-    name: string;
-    description: string;
-    tags: string[];
-    language: string;
-    visibility: string;
-  };
-  onClick: () => void;
-}
-
-const ResultItem: React.FC<ResultItemProps> = ({ item, onClick }) => {
-  return (
-    <div
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          onClick();
-        }
-      }}
-      className="p-4 border rounded mb-2 cursor-pointer"
-    >
-      <h2 className="text-lg font-semibold">{item.name}</h2>
-      <p>{item.description}</p>
-      <p>{item.language}</p>
-      <p>{item.visibility}</p>
-    </div>
-  );
-};
-
-const ResultsList: React.FC<ResultsListProps> = ({ renderItem }) => {
-  const results = useSearchStore((s) => s.results);
-
-  return <div>{results.map((result) => renderItem(result))}</div>;
-};
-
 export default function SearchAndFilter() {
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const setResults = useSearchStore((state) => state.setResults);
+  const [results, setResults] = useSearchStore((state) => [
+    state.results,
+    state.setResults,
+  ]);
 
   const form = useForm<SearchFilterSchemaType>({
     resolver: zodResolver(SearchFilterSchema),
@@ -258,15 +219,9 @@ export default function SearchAndFilter() {
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </form>
-      <ResultsList
-        renderItem={(item) => (
-          <ResultItem
-            key={item.id}
-            item={item}
-            onClick={() => console.log(item.id)}
-          />
-        )}
-      />
+
+      {results.length > 0 &&
+        results.map((item) => <RepoCard repo={item} key={item.id} />)}
     </Form>
   );
 }
