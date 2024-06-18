@@ -1,8 +1,7 @@
 // src/components/SearchAndFilter.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { SearchFilterSchema, SearchFilterSchemaType } from "./schemas";
 import {
   Form,
   FormControl,
@@ -14,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Popover,
   PopoverContent,
@@ -28,18 +26,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command.client";
-import {
-  Check,
-  ChevronsUpDown,
-  // Store,
-} from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchResultType, useSearchStore } from "@/stores/search-store";
 import { showErrorToast } from "@/lib/handle-error";
 import { z } from "zod";
 import { RepoCard } from "@/components/repo/card";
 import { Shell } from "@/components/landing/shell";
-import { LoaderFunction, json, redirect } from "@remix-run/node";
+import { LoaderFunction, json } from "@remix-run/node";
 import { getPaginatedRepos } from "@/lib/fetcher/repo";
 import { useLoaderData } from "@remix-run/react";
 import { Spinner } from "@/components/custom/spinner";
@@ -52,7 +46,7 @@ export const SearchFilterSchema = z
   })
   .refine((data) => data.language || data.searchQuery, {
     message: "At least one field must be filled out",
-    path: ["searchQuery"], // This is arbitrary; could point to any path
+    path: ["searchQuery"],
   });
 
 export type SearchFilterSchemaType = z.infer<typeof SearchFilterSchema>;
@@ -76,6 +70,8 @@ export default function SearchAndFilter() {
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [results, setResults] = useSearchStore((state) => [
     state.results,
     state.setResults,
@@ -90,10 +86,58 @@ export default function SearchAndFilter() {
     },
   });
 
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastRepoElementRef = useCallback(
+    (node) => {
+      if (isLoading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isLoading, hasMore],
+  );
+
   useEffect(() => {
     if (!repos.data) return;
     setResults(repos.data);
-  }, [repos]);
+  }, [repos, setResults]);
+
+  useEffect(() => {
+    const fetchMoreData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `${window.ENV.BACKEND_URL}/api/v1/repos?page=${page}&limit=10`,
+          {
+            method: "GET",
+          },
+        );
+
+        const res = await response.json();
+        if (!response.ok) {
+          throw new Error(res.message);
+        }
+
+        if (res.repos.length === 0) {
+          setHasMore(false);
+        } else {
+          setResults([...results, ...res.repos]);
+        }
+      } catch (error) {
+        showErrorToast(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (page > 1) {
+      fetchMoreData();
+    }
+  }, [page, results, setResults]);
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
@@ -255,19 +299,29 @@ export default function SearchAndFilter() {
           </form>
         </Form>
       </Shell>
-      {results.length > 0 ? (
-        <Shell className="mt-4">
+      <Shell className="mt-4">
+        {results.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {results.map((item) => (
-              <RepoCard repo={item} key={item.id} />
-            ))}
+            {results.map((item, index) => {
+              if (results.length === index + 1) {
+                return (
+                  <RepoCard
+                    repo={item}
+                    key={item.id}
+                    ref={lastRepoElementRef}
+                  />
+                );
+              } else {
+                return <RepoCard repo={item} key={item.id} />;
+              }
+            })}
           </div>
-        </Shell>
-      ) : (
-        <div className="flex items-center justify-center mt-4">
-          <Spinner />
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center justify-center mt-4">
+            <Spinner />
+          </div>
+        )}
+      </Shell>
     </>
   );
 }
