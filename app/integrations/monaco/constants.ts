@@ -74,7 +74,8 @@ export const SELF_CLOSING_TAGS: string[] = [
 
 export const TYPESCRIPT_VARIANT_1 = `
 import * as React from 'react';
-import { render } from 'react-live';
+import { render } from 'react-dom';
+import './index.css';
 
 type Props = {
   name: string;
@@ -88,8 +89,10 @@ const Greeting = (props: Props) => {
   }, [props.name]);
 
   return (
-    <div>
-      <h1>{greeting}</h1>
+    <div className="flex flex-col items-center space-y-4 p-4 bg-gray-100 rounded shadow">
+      <h1 className="text-white font-bold text-xl bg-darkslateblue p-2 rounded">
+        {greeting}
+      </h1>
     </div>
   );
 };
@@ -99,7 +102,8 @@ render(<Greeting name="World" />);
 
 export const TYPESCRIPT_VARIANT_2 = `
 import * as React from 'react';
-import { render } from 'react-live';
+import { render } from 'react-dom';
+import './index.css';
 
 type Props = {
   items: string[];
@@ -113,11 +117,15 @@ const ItemList = (props: Props) => {
   }, [props.items]);
 
   return (
-    <ul>
-      {items.map((item, index) => (
-        <li key={index}>{item}</li>
-      ))}
-    </ul>
+    <div className="flex flex-col items-center space-y-4 p-4 bg-gray-100 rounded shadow">
+      <ul className="list-disc">
+        {items.map((item, index) => (
+          <li key={index} className="text-white font-bold text-xl bg-darkslateblue p-2 rounded m-1">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
@@ -126,7 +134,8 @@ render(<ItemList items={['Apple', 'Banana', 'Cherry']} />);
 
 export const TYPESCRIPT_VARIANT_3 = `
 import * as React from 'react';
-import { render } from 'react-live';
+import { render } from 'react-dom';
+import './index.css';
 
 type Props = {
   initialCount: number;
@@ -140,9 +149,15 @@ const Counter = (props: Props) => {
   }, [props.initialCount]);
 
   return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
+    <div className="flex flex-col items-center space-y-4 p-4 bg-gray-100 rounded shadow">
+      <p className="text-white font-bold text-xl bg-darkslateblue p-2 rounded">
+        Count: {count}
+      </p>
+      <button 
+        onClick={() => setCount(count + 1)} 
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        Increment
+      </button>
     </div>
   );
 };
@@ -152,7 +167,8 @@ render(<Counter initialCount={0} />);
 
 export const TYPESCRIPT_VARIANT_4 = `
 import * as React from 'react';
-import { render } from 'react-live';
+import { render } from 'react-dom';
+import './index.css';
 
 type Props = {
   text: string;
@@ -162,11 +178,17 @@ const ToggleText = (props: Props) => {
   const [visible, setVisible] = React.useState<boolean>(true);
 
   return (
-    <div>
-      <button onClick={() => setVisible(!visible)}>
+    <div className="flex flex-col items-center space-y-4 p-4 bg-gray-100 rounded shadow">
+      <button 
+        onClick={() => setVisible(!visible)} 
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
         Toggle Text
       </button>
-      {visible && <p>{props.text}</p>}
+      {visible && (
+        <p className="text-white font-bold text-xl bg-darkslateblue p-2 rounded">
+          {props.text}
+        </p>
+      )}
     </div>
   );
 };
@@ -176,7 +198,8 @@ render(<ToggleText text="Hello, toggle me!" />);
 
 export const TYPESCRIPT_VARIANT_5 = `
 import * as React from 'react';
-import { render } from 'react-live';
+import { render } from 'react-dom';
+import './index.css';
 
 type Props = {
   message: string;
@@ -188,9 +211,13 @@ const AlertButton = (props: Props) => {
   });
 
   return (
-    <button onClick={() => showAlert.current()}>
-      Show Alert
-    </button>
+    <div className="flex flex-col items-center space-y-4 p-4 bg-gray-100 rounded shadow">
+      <button 
+        onClick={() => showAlert.current()} 
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        Show Alert
+      </button>
+    </div>
   );
 };
 

@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { getHighlighter } from "shiki";
-import { shikiToMonaco } from "@shikijs/monaco";
-
+import { injectCSS } from "@/integrations/monaco/inject-css";
 // import { useDebounce } from '@/hooks/useDebounce';
 import {
   Menubar,
@@ -27,14 +26,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useMonacoStore } from "@/stores/monaco-store";
 import type { OnMount } from "@monaco-editor/react";
-import { LiveProvider, LivePreview } from "react-live";
+import { LiveProvider, LivePreview, LiveError } from "react-live";
 import Editor from "@monaco-editor/react";
 // import MonacoEditor from '@/integrations/monaco/monaco';
 import type {
   IStandaloneCodeEditor,
   Monaco,
 } from "@/integrations/monaco/native.types";
-import { DEFAULT_CSS_MONACO } from "@/integrations/monaco/constants";
+// import { DEFAULT_CSS_MONACO } from "@/integrations/monaco/constants";
 import { Layout, LayoutBody, LayoutHeader } from "@/components/custom/layout";
 import { Spinner } from "@/components/custom/spinner";
 import { ClientOnly } from "remix-utils/client-only";
@@ -217,6 +216,7 @@ function CodeRepoEditorPreview() {
               <ResizablePanel defaultSize={50}>
                 <div className="bg-white min-h-screen">
                   <LivePreview className="w-full" />
+                  <LiveError />
                 </div>
               </ResizablePanel>
             </ResizablePanelGroup>
@@ -246,7 +246,7 @@ export function MenubarDemo() {
     setEditorOptions({ fontSize });
   };
 
-  const handleChangeLanguage = (language: string) => {
+  const handleChangeLanguage = (language: "javascript" | "typescript") => {
     setEditorOptions({ language });
   };
 
@@ -317,10 +317,3 @@ export function MenubarDemo() {
     </Menubar>
   );
 }
-
-const injectCSS = (css: string) => {
-  const style = document.createElement("style");
-  style.type = "text/css";
-  style.appendChild(document.createTextNode(css));
-  document.head.appendChild(style);
-};

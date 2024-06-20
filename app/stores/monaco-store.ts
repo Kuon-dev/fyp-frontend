@@ -13,9 +13,15 @@ export type MonacoStoreType = {
     theme: string;
     fontSize: number;
     language: "javascript" | "typescript";
+    wordWrap: "on" | "off";
   };
   setEditorOptions: (
-    options: Partial<{ theme: string; fontSize: number }>,
+    options: Partial<{
+      theme: string;
+      fontSize: number;
+      wordWrap: "on" | "off";
+      language: "javascript" | "typescript";
+    }>,
   ) => void;
 };
 
@@ -26,6 +32,7 @@ export const useMonacoStore = create<MonacoStoreType>((set) => ({
     theme: "vs-dark",
     fontSize: 14,
     language: "typescript",
+    wordWrap: "on",
   },
   cssValue: DEFAULT_CSS_MONACO,
   handleCssChange: (value: string) => set({ cssValue: value }),

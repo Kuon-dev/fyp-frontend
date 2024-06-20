@@ -21,19 +21,20 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { PencilIcon } from "lucide-react";
+import { LiveProvider, LivePreview, LiveError } from "react-live";
+import { injectCSS } from "@/integrations/monaco/inject-css";
+import { DEFAULT_REACT_MONACO } from "@/integrations/monaco/constants";
 
 interface RepoCardProps {
-  repo: {
-    id: string;
-    name: string;
-    description: string;
-  };
+  repo: BackendCodeRepo;
 }
 
 export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
   ({ repo }, ref) => {
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [name, setName] = React.useState(repo.name);
+    const [renderValue, setRenderValue] = React.useState(repo.sourceJs);
+    const [cssValue, setCssValue] = React.useState(repo.sourceCss);
     const [description, setDescription] = React.useState(repo.description);
     const appUrl = window.ENV.APP_URL;
 
@@ -41,19 +42,35 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
       setDialogOpen(false);
     };
 
+    React.useEffect(() => {
+      if (!repo) return;
+      setCssValue(repo.sourceCss);
+      // Remove react import statements
+      const importRegex = /^import\s.+?;?\s*$/gm;
+      const value = repo.sourceJs.replace(importRegex, "").trim();
+      // Add import css back
+      setRenderValue(`
+      injectCSS(cssValue);
+      ${value}
+    `);
+    }, [repo.sourceJs, cssValue, repo]);
+
     return (
       <Card
         ref={ref}
         className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
       >
-        <Link to={`${appUrl}/${repo.id}`} className="block">
-          <iframe
-            src={`${appUrl}/${repo.id}`}
-            title={repo.name}
-            width="100%"
-            height="200"
-            className="w-full h-48 object-cover"
-          />
+        <Link to={`${appUrl}/r/${repo.id}`} className="block">
+          <div className="dark:bg-gray-900 min-h-64">
+            <LiveProvider
+              code={renderValue}
+              noInline
+              scope={{ injectCSS, cssValue }}
+            >
+              <LivePreview />
+              <LiveError />
+            </LiveProvider>
+          </div>
         </Link>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
@@ -96,7 +113,7 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
                         </div>
                         <div>
                           <Textarea
-                            value={description}
+                            value={description ?? ""}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Project description"
                           />

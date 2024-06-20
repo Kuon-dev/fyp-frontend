@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/command.client";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SearchResultType, useSearchStore } from "@/stores/search-store";
+import { useSearchStore } from "@/stores/search-store";
 import { showErrorToast } from "@/lib/handle-error";
 import { z } from "zod";
 import { RepoCard } from "@/components/repo/card";
@@ -51,7 +51,7 @@ export const SearchFilterSchema = z
 
 export type SearchFilterSchemaType = z.infer<typeof SearchFilterSchema>;
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async () => {
   const repos = await getPaginatedRepos();
 
   return json({
@@ -62,7 +62,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function SearchAndFilter() {
   const { repos } = useLoaderData<typeof loader>() as {
     repos: {
-      data: SearchResultType[] | null;
+      data: BackendCodeRepo[] | null;
       total: number;
     };
   };
@@ -137,7 +137,7 @@ export default function SearchAndFilter() {
     if (page > 1) {
       fetchMoreData();
     }
-  }, [page, results, setResults]);
+  }, [page, setResults]);
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
@@ -322,6 +322,12 @@ export default function SearchAndFilter() {
           </div>
         )}
       </Shell>
+      <div
+        ref={lastRepoElementRef}
+        className="flex items-center justify-center mt-4"
+      >
+        {isLoading && <Spinner />}
+      </div>
     </>
   );
 }

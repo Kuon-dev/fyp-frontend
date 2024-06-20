@@ -31,17 +31,17 @@ import {
 
 type LoaderData = SerializeFrom<typeof loader>;
 
-export const handle: ExternalScriptsHandle<LoaderData> = {
-  scripts({ id, data, params, matches, location, parentsData }) {
-    return [
-      {
-        src: "https://js.stripe.com/v3/",
-        crossOrigin: "anonymous",
-      },
-    ];
-  },
-};
-
+// export const handle: ExternalScriptsHandle<LoaderData> = {
+//   scripts({ id, data, params, matches, location, parentsData }) {
+//     return [
+//       {
+//         src: "https://js.stripe.com/v3/",
+//         crossOrigin: "anonymous",
+//       },
+//     ];
+//   },
+// };
+//
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];

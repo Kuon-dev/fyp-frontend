@@ -12,8 +12,8 @@ export type SearchResultType = {
 };
 
 type SearchStoreType = {
-  results: SearchResultType[];
-  setResults: (results: SearchResultType[]) => void;
+  results: BackendCodeRepo[];
+  setResults: (results: BackendCodeRepo[]) => void;
 };
 
 export const useSearchStore = create<SearchStoreType>((set) => ({

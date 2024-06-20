@@ -94,15 +94,22 @@ export const createRepo = async (
  */
 export const getRepoById = async (id: string): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/api/v1/repos/${id}`);
+    const response = await fetch(`${backendURL}/api/v1/repo/${id}`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     const data = await response.json();
     if (response.ok) {
-      return RepoSchema.parse(data);
+      return data;
+      // return RepoSchema.parse(data);
     } else {
       throw new Error(data.message);
     }
   } catch (error: unknown) {
-    showErrorToast(error);
+    if (window) showErrorToast(error);
+    else console.log(error);
     return null;
   }
 };
