@@ -41,7 +41,7 @@ type LoaderData = SerializeFrom<typeof loader>;
 //     ];
 //   },
 // };
-//
+
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
@@ -109,7 +109,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const setUser = useDashboardStore((state) => state.setUser);
 
   useEffect(() => {
-    const userData = data.userData;
+    const userData = data?.userData ?? null;
     if (userData) {
       setUser(userData);
     }
@@ -131,8 +131,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         ></script>
         <ScrollRestoration />
         <ExternalScripts />
-        {data.userData?.user.bannedUntil && <BannedBanner />}
-        {data.showBanner && <CookieBanner />}
+        {data?.userData?.user.bannedUntil && <BannedBanner />}
+        {data?.showBanner && <CookieBanner />}
         <Scripts />
       </body>
     </html>

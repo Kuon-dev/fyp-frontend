@@ -11,9 +11,11 @@ export type SearchResultType = {
   visibility: BackendVisibility;
 };
 
+export type RepoNoSource = Omit<BackendCodeRepo, "sourceJs" | "sourceCss">;
+
 type SearchStoreType = {
-  results: BackendCodeRepo[];
-  setResults: (results: BackendCodeRepo[]) => void;
+  results: RepoNoSource[];
+  setResults: (results: RepoNoSource[]) => void;
 };
 
 export const useSearchStore = create<SearchStoreType>((set) => ({

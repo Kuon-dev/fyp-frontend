@@ -1,4 +1,8 @@
-import { Link } from "@remix-run/react";
+import {
+  // Link,
+  json,
+  useLoaderData,
+} from "@remix-run/react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -6,10 +10,11 @@ import {
 } from "@/components/ui/resizable";
 import { LiveProvider, LivePreview } from "react-live";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  // DropdownMenuLabel,
+  // DropdownMenuSeparator,
   DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenu,
@@ -18,16 +23,61 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TabsList } from "@radix-ui/react-tabs";
 import { ClientOnly } from "remix-utils/client-only";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { EyeIcon } from "lucide-react";
-import {
-  TYPESCRIPT_VARIANT_4,
-  DEFAULT_REACT_MONACO,
-} from "@/integrations/monaco/constants";
+import { getRepoById } from "@/lib/fetcher/repo";
+import { LoaderFunction } from "@remix-run/node";
+import { codeToHtml } from "shiki";
+import { Spinner } from "@/components/custom/spinner";
+import type { RepoNoSource } from "@/stores/search-store";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+
+export const loader: LoaderFunction = async ({ params }) => {
+  const id = params.id;
+  const data = (await getRepoById(id ?? "")) ?? null;
+  return json({
+    repo: data,
+  });
+};
 
 export default function Component() {
-  const [code, setCode] = useState(DEFAULT_REACT_MONACO);
+  const { repo } = useLoaderData<typeof loader>() as {
+    repo: BackendCodeRepo | null;
+  };
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isOnPreview, setIsOnPreview] = useState(true);
+  const shikiContainer = useRef<HTMLDivElement | null>(null);
+
+  const [panelSize] = useState(0);
+  const [panelDraggingCheck, setPanelDraggingCheck] = useState<string | null>(
+    null,
+  );
+  // const panelRefFirst = useRef<ImperativePanelHandle>(null);
+  // const panelRefSecond = useRef<ImperativePanelHandle>(null);
+
+  // const handleResize = (size: number, id: string) => {
+  // };
+  const [code, setCode] = useState(repo?.sourceJs ?? "");
+  const [cssValue, setCssValue] = useState(repo?.sourceCss ?? "");
+
+  useEffect(() => {
+    const initShiki = async () => {
+      try {
+        const html = await codeToHtml(code, {
+          lang: repo?.language.toLowerCase() ?? "tsx",
+          theme: "vitesse-dark",
+        });
+        if (shikiContainer.current) {
+          shikiContainer.current.innerHTML = html;
+          setIsLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error generating code HTML:", error);
+      }
+    };
+    initShiki();
+  });
+
   useEffect(() => {
     // Remove react import statements
     const importRegex = /^import\s.+?;?\s*$/gm;
@@ -44,225 +94,231 @@ export default function Component() {
     <div key="1" className="flex flex-col h-screen">
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto py-8 px-4 md:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-16 max-w-full w-full">
             <ClientOnly>
               {() => (
-                <Tabs
-                  className="flex flex-col gap-4"
-                  defaultValue={isOnPreview ? "preview" : "view"}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h1 className="text-2xl font-bold">
-                        Acme Inc / awesome-project
-                      </h1>
-                      <p className="text-gray-500">
-                        A beautiful and responsive code repository.
-                      </p>
-                    </div>
-                    <TabsList className="flex items-center space-x-4">
-                      <TabsTrigger
-                        asChild
-                        value="code"
-                        className={isOnPreview ? "hidden" : ""}
-                        onTouchEnd={() => setIsOnPreview(true)}
-                        onClick={() => setIsOnPreview(true)}
-                      >
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setIsOnPreview(false)}
-                        >
-                          <CodeIcon className="w-4 h-4 mr-2" />
-                          View Code
-                        </Button>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        asChild
-                        value="preview"
-                        className={isOnPreview ? "" : "hidden"}
-                        onTouchEnd={() => setIsOnPreview(false)}
-                        onClick={() => setIsOnPreview(false)}
-                      >
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setIsOnPreview(true)}
-                        >
-                          <EyeIcon className="w-4 h-4 mr-2" />
-                          Preview
-                        </Button>
-                      </TabsTrigger>
-                      <Button size="sm" variant="outline">
-                        <StarIcon className="w-4 h-4 mr-2" />
-                        Star
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                <React.Fragment>
+                  <Tabs
+                    className="flex flex-col gap-4 max-w-inherit"
+                    defaultValue={"preview"}
+                    onValueChange={(value) =>
+                      setIsOnPreview(value === "preview")
+                    }
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h1 className="text-2xl font-bold">
+                          {isOnPreview ? "Preview" : "Code"}
+                        </h1>
+                        <p className="text-gray-500">
+                          A beautiful and responsive code repository.
+                        </p>
+                      </div>
+                      <TabsList className="flex items-center space-x-4">
+                        <TabsTrigger asChild value="code">
                           <Button size="sm" variant="outline">
-                            <FlipVerticalIcon className="w-4 h-4 mr-2" />
-                            More
+                            <CodeIcon className="w-4 h-4 mr-2" />
+                            View Code
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <CopyIcon className="w-4 h-4 mr-2" />
-                            Copy repository link
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Share2Icon className="w-4 h-4 mr-2" />
-                            Embed code snippet
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <ShareIcon className="w-4 h-4 mr-2" />
-                            Share repository
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TabsList>
-                  </div>
-                  <div className="bg-gray-900 rounded-lg overflow-hidden">
-                    <div className="flex items-center justify-between bg-gray-800 px-4 py-2 border border-border">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          className="text-gray-400 hover:text-white"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <CodeIcon className="w-4 h-4" />
-                          <span className="sr-only">View code</span>
+                        </TabsTrigger>
+                        <TabsTrigger asChild value="preview">
+                          <Button size="sm" variant="outline">
+                            <EyeIcon className="w-4 h-4 mr-2" />
+                            Preview
+                          </Button>
+                        </TabsTrigger>
+                        <Button size="sm" variant="outline">
+                          <StarIcon className="w-4 h-4 mr-2" />
+                          Star
                         </Button>
-                        <Separator
-                          className="h-5 bg-gray-600"
-                          orientation="vertical"
-                        />
-                        <Button
-                          className="text-gray-400 hover:text-white"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <TerminalIcon className="w-4 h-4" />
-                          <span className="sr-only">View terminal</span>
-                        </Button>
-                        <Separator
-                          className="h-5 bg-gray-600"
-                          orientation="vertical"
-                        />
-                        <Button
-                          className="text-gray-400 hover:text-white"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <FileIcon className="w-4 h-4" />
-                          <span className="sr-only">View files</span>
-                        </Button>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          className="text-gray-400 hover:text-white"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MaximizeIcon className="w-4 h-4" />
-                          <span className="sr-only">Fullscreen</span>
-                        </Button>
-                        <Separator
-                          className="h-5 bg-gray-600"
-                          orientation="vertical"
-                        />
-                        <Button
-                          className="text-gray-400 hover:text-white"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <SmartphoneIcon className="w-4 h-4" />
-                          <span className="sr-only">Mobile view</span>
-                        </Button>
-                        <Separator
-                          className="h-5 bg-gray-600"
-                          orientation="vertical"
-                        />
-                        <Button
-                          className="text-gray-400 hover:text-white"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <ComputerIcon className="w-4 h-4" />
-                          <span className="sr-only">Desktop view</span>
-                        </Button>
-                      </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <FlipVerticalIcon className="w-4 h-4 mr-2" />
+                              More
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <CopyIcon className="w-4 h-4 mr-2" />
+                              Copy repository link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Share2Icon className="w-4 h-4 mr-2" />
+                              Embed code snippet
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <ShareIcon className="w-4 h-4 mr-2" />
+                              Share repository
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TabsList>
                     </div>
+                    <div className="bg-gray-900 rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between bg-gray-800 px-4 py-2 border border-border">
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            className="text-gray-400 hover:text-white"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <CodeIcon className="w-4 h-4" />
+                            <span className="sr-only">View code</span>
+                          </Button>
+                          <Separator
+                            className="h-5 bg-gray-600"
+                            orientation="vertical"
+                          />
+                          <Button
+                            className="text-gray-400 hover:text-white"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <TerminalIcon className="w-4 h-4" />
+                            <span className="sr-only">View terminal</span>
+                          </Button>
+                          <Separator
+                            className="h-5 bg-gray-600"
+                            orientation="vertical"
+                          />
+                          <Button
+                            className="text-gray-400 hover:text-white"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <FileIcon className="w-4 h-4" />
+                            <span className="sr-only">View files</span>
+                          </Button>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            className="text-gray-400 hover:text-white"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MaximizeIcon className="w-4 h-4" />
+                            <span className="sr-only">Fullscreen</span>
+                          </Button>
+                          <Separator
+                            className="h-5 bg-gray-600"
+                            orientation="vertical"
+                          />
+                          <Button
+                            className="text-gray-400 hover:text-white"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <SmartphoneIcon className="w-4 h-4" />
+                            <span className="sr-only">Mobile view</span>
+                          </Button>
+                          <Separator
+                            className="h-5 bg-gray-600"
+                            orientation="vertical"
+                          />
+                          <Button
+                            className="text-gray-400 hover:text-white"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <ComputerIcon className="w-4 h-4" />
+                            <span className="sr-only">Desktop view</span>
+                          </Button>
+                        </div>
+                      </div>
 
-                    <TabsContent
-                      className="bg-gray-800 text-white font-mono text-sm whitespace-pre-wrap border"
-                      value="preview"
-                    >
-                      <ResizablePanelGroup
-                        direction="horizontal"
-                        className="flex"
+                      <TabsContent
+                        className="bg-gray-800 text-white font-mono text-sm whitespace-pre-wrap border"
+                        value="preview"
                       >
-                        <ResizablePanel defaultSize={0} id="1" />
-                        <ResizableHandle withHandle />
-                        <ResizablePanel defaultSize={100} minSize={40}>
-                          <LiveProvider code={code} noInline scope={{}}>
-                            <LivePreview className="w-full bg-white" />
-                          </LiveProvider>
-                        </ResizablePanel>
-                        <ResizableHandle withHandle />
-                        <ResizablePanel defaultSize={0} id="1" />
-                      </ResizablePanelGroup>
-                    </TabsContent>
-                    <TabsContent
-                      className="bg-gray-800 p-4 text-white font-mono text-sm whitespace-pre-wrap border"
-                      value="code"
-                    >
-                      <Button variant="destructive">not Lorem ipsum</Button>
-                    </TabsContent>
-                  </div>
-                </Tabs>
+                        <ResizablePanelGroup
+                          direction="horizontal"
+                          className="flex"
+                        >
+                          <ResizablePanel
+                            defaultSize={panelSize}
+                            id="1"
+                            maxSize={30}
+                          />
+                          <ResizableHandle withHandle />
+                          <ResizablePanel defaultSize={100} minSize={40}>
+                            <LiveProvider code={code} noInline scope={{}}>
+                              <LivePreview className="w-full bg-white" />
+                            </LiveProvider>
+                          </ResizablePanel>
+                          <ResizableHandle withHandle />
+                          <ResizablePanel
+                            defaultSize={panelSize}
+                            id="2"
+                            maxSize={30}
+                          />
+                        </ResizablePanelGroup>
+                      </TabsContent>
+                      <TabsContent
+                        className="bg-gray-800 p-4 text-white font-mono text-sm whitespace-pre-wrap border overflow-scroll"
+                        value="code"
+                      >
+                        <div
+                          ref={shikiContainer}
+                          className={
+                            isLoaded
+                              ? ""
+                              : "flex justify-center items-center w-[30rem]"
+                          }
+                        >
+                          <Spinner />
+                        </div>
+                      </TabsContent>
+                    </div>
+                  </Tabs>
+                  <RepoDetails repo={repo} />
+                </React.Fragment>
               )}
             </ClientOnly>
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mt-10">
-              <h2 className="text-lg font-bold mb-4">About this repository</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Owner
-                  </span>
-                  <span className="font-medium">Acme Inc</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Last updated
-                  </span>
-                  <span className="font-medium">2 days ago</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Stars
-                  </span>
-                  <span className="font-medium">123</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Forks
-                  </span>
-                  <span className="font-medium">45</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    License
-                  </span>
-                  <span className="font-medium">MIT</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </main>
     </div>
   );
 }
+
+const RepoDetails: React.FC<{
+  repo: RepoNoSource | BackendCodeRepo | null;
+}> = ({ repo }) => {
+  React.useEffect(() => {
+    if (repo === null) toast.error("Internal Server Error");
+  }, []);
+
+  return (
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mt-10">
+      <h2 className="text-lg font-bold mb-4">About this repository</h2>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Owner</span>
+          <span className="font-medium">{repo?.userId}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Last updated</span>
+          <span className="font-medium">
+            {new Date(repo?.updatedAt).toLocaleDateString()}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Price</span>
+          <span className="font-medium">${repo?.price}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Language</span>
+          <span className="font-medium">{repo?.language}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500 dark:text-gray-400">Visibility</span>
+          <span className="font-medium">{repo?.visibility}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 function BellIcon(props: React.ComponentProps<"svg">) {
   return (

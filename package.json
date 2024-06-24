@@ -48,6 +48,8 @@
     "@remix-run/node": "^2.9.1",
     "@remix-run/react": "^2.9.1",
     "@remix-run/serve": "^2.9.1",
+    "@stripe/react-stripe-js": "^2.7.1",
+    "@stripe/stripe-js": "^4.0.0",
     "@tabler/icons-react": "^3.3.0",
     "@tanstack/react-table": "^8.17.3",
     "@unpic/react": "^0.1.14",

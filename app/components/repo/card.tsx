@@ -21,55 +21,54 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { PencilIcon } from "lucide-react";
-import { LiveProvider, LivePreview, LiveError } from "react-live";
-import { injectCSS } from "@/integrations/monaco/inject-css";
-import { DEFAULT_REACT_MONACO } from "@/integrations/monaco/constants";
+import { Spinner } from "@/components/custom/spinner";
+import type { RepoNoSource } from "@/stores/search-store";
 
 interface RepoCardProps {
-  repo: BackendCodeRepo;
+  repo: RepoNoSource;
 }
 
 export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
   ({ repo }, ref) => {
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [name, setName] = React.useState(repo.name);
-    const [renderValue, setRenderValue] = React.useState(repo.sourceJs);
-    const [cssValue, setCssValue] = React.useState(repo.sourceCss);
     const [description, setDescription] = React.useState(repo.description);
+    const [loading, setLoading] = React.useState(true);
     const appUrl = window.ENV.APP_URL;
 
     const handleSave = () => {
       setDialogOpen(false);
     };
 
-    React.useEffect(() => {
-      if (!repo) return;
-      setCssValue(repo.sourceCss);
-      // Remove react import statements
-      const importRegex = /^import\s.+?;?\s*$/gm;
-      const value = repo.sourceJs.replace(importRegex, "").trim();
-      // Add import css back
-      setRenderValue(`
-      injectCSS(cssValue);
-      ${value}
-    `);
-    }, [repo.sourceJs, cssValue, repo]);
+    const handleLoad = () => {
+      setLoading(false);
+    };
+
+    const handleError = () => {
+      setLoading(false);
+    };
 
     return (
       <Card
         ref={ref}
         className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
       >
-        <Link to={`${appUrl}/r/${repo.id}`} className="block">
-          <div className="dark:bg-gray-900 min-h-64">
-            <LiveProvider
-              code={renderValue}
-              noInline
-              scope={{ injectCSS, cssValue }}
-            >
-              <LivePreview />
-              <LiveError />
-            </LiveProvider>
+        <Link to={`${appUrl}/preview/repo/${repo.id}`} className="block">
+          <div className="dark:bg-gray-900 min-h-64 relative">
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800">
+                <Spinner />
+              </div>
+            )}
+            <iframe
+              src={`${appUrl}/preview/repo/${repo.id}`}
+              title={repo.name}
+              width="100%"
+              className="w-full h-48 object-cover"
+              loading="lazy"
+              onLoad={handleLoad}
+              onError={handleError}
+            />
           </div>
         </Link>
         <CardContent className="p-4">

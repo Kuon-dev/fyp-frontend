@@ -116,6 +116,12 @@ importers:
       '@remix-run/serve':
         specifier: ^2.9.1
         version: 2.9.2(typescript@5.4.5)
+      '@stripe/react-stripe-js':
+        specifier: ^2.7.1
+        version: 2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@stripe/stripe-js':
+        specifier: ^4.0.0
+        version: 4.0.0
       '@tabler/icons-react':
         specifier: ^3.3.0
         version: 3.4.0(react@18.3.1)
@@ -1828,6 +1834,17 @@ packages:
 
   '@shikijs/monaco@1.6.2':
     resolution: {integrity: sha512-0X/ud3naqebORTkXdC2dKNM3ymxMKxGBaS+H2qlWEG4O+UfEhdYdN9BFNFVibGwcnAft4dNNW+fIimYgBhZUpw==}
+
+  '@stripe/react-stripe-js@2.7.1':
+    resolution: {integrity: sha512-/i13alp27HaSBbMM6kW0jhy8KqdtOL1T/EcRjFjfhvt+CBtMEg8TD7y28W3oZG0+OBDdCyGGnXgNgrKPYQH40g==}
+    peerDependencies:
+      '@stripe/stripe-js': ^1.44.1 || ^2.0.0 || ^3.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+
+  '@stripe/stripe-js@4.0.0':
+    resolution: {integrity: sha512-R5zewuzTVPGn4dXkavbgDk8vSILkT5hRlzga10p6JzngR17qKi1fgc27kl58TmaVvgBZGngTRNH2j9kYdvfPGA==}
+    engines: {node: '>=12.16'}
 
   '@tabler/icons-react@3.4.0':
     resolution: {integrity: sha512-hwRXZ//7B3d8FSb2loMj67s8UZeneCsOCs+Acv0KllWXS15brpFjdi6ROf/Vq5+vr1brFf+xmSTiQkKlEF1Yaw==}
@@ -6565,6 +6582,15 @@ snapshots:
   '@shikijs/monaco@1.6.2':
     dependencies:
       '@shikijs/core': 1.6.2
+
+  '@stripe/react-stripe-js@2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@stripe/stripe-js': 4.0.0
+      prop-types: 15.8.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@stripe/stripe-js@4.0.0': {}
 
   '@tabler/icons-react@3.4.0(react@18.3.1)':
     dependencies:

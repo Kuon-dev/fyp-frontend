@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/command.client";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSearchStore } from "@/stores/search-store";
+import { RepoNoSource, useSearchStore } from "@/stores/search-store";
 import { showErrorToast } from "@/lib/handle-error";
 import { z } from "zod";
 import { RepoCard } from "@/components/repo/card";
@@ -55,14 +55,14 @@ export const loader: LoaderFunction = async () => {
   const repos = await getPaginatedRepos();
 
   return json({
-    repos,
+    repos: repos ?? [],
   });
 };
 
 export default function SearchAndFilter() {
   const { repos } = useLoaderData<typeof loader>() as {
     repos: {
-      data: BackendCodeRepo[] | null;
+      data: RepoNoSource[] | [];
       total: number;
     };
   };
@@ -103,7 +103,7 @@ export default function SearchAndFilter() {
 
   useEffect(() => {
     if (!repos.data) return;
-    setResults(repos.data);
+    setResults(repos?.data);
   }, [repos, setResults]);
 
   useEffect(() => {
@@ -122,10 +122,10 @@ export default function SearchAndFilter() {
           throw new Error(res.message);
         }
 
-        if (res.repos.length === 0) {
+        if (res.data.length === 0) {
           setHasMore(false);
         } else {
-          setResults([...results, ...res.repos]);
+          setResults([...results, ...res.data]);
         }
       } catch (error) {
         showErrorToast(error);

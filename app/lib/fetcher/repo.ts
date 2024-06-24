@@ -188,7 +188,7 @@ export const getPaginatedRepos = async (
     const data = await response.json();
     if (response.ok) {
       return {
-        data: data.repos,
+        data: data.data,
         total: data.total,
       };
     } else {

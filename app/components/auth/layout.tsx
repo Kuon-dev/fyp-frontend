@@ -55,9 +55,7 @@ export default function AuthLayout({
           >
             <div
               ref={shikiContainer}
-              className={
-                isLoaded ? "" : "flex justify-center items-center w-full"
-              }
+              className={isLoaded ? "" : "flex justify-center items-center"}
             >
               <Spinner />
             </div>
