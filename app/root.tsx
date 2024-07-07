@@ -51,11 +51,24 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
   let user: Me | null = null;
   try {
-    if (cookieHeader) user = await getCurrentUserProfileData(cookieHeader);
+    if (cookieHeader) {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
+        headers: {
+          Cookie: cookieHeader,
+        },
+      }).then((r) => r.json());
+      console.log(res);
+      user = res ?? null;
+      //if (res.ok) {
+      //  if (res.status !== 204)
+      //  console.log('204')
+      //  user = await res.json() ?? null
+      //  console.log(user)
+      //}
+    }
   } catch (e) {
-    console.log(e);
     if (e instanceof Response && e.status === 401) {
-      return redirect("/login");
+      // return redirect("/login");
     }
   }
 

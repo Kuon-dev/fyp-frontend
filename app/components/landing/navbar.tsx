@@ -7,7 +7,7 @@ import { useDashboardStore } from "@/stores/dashboard-store";
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
-  { to: "#", label: "Products" },
+  { to: "/search", label: "Products" },
   { to: "/support/ticket", label: "Contact" },
 ];
 

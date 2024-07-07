@@ -100,7 +100,7 @@ export default function Component() {
                         className="pl-8 w-[200px] sm:w-[300px]"
                       />
                     </div>
-                    <DialogTrigger onClick={() => setDialogOpen(true)}>
+                    <DialogTrigger onClick={() => setDialogOpen(true)} asChild>
                       <Button variant="outline" size="sm">
                         <PlusIcon className="w-4 h-4 mr-2" />
                         New Pen

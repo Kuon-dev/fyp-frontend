@@ -16,7 +16,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 export default function ViewRepo() {
   const { repo } = useLoaderData<typeof loader>() as { repo: BackendCodeRepo };
   useEffect(() => {
-    console.log("test");
+    //console.log("test");
   }, [repo]);
   return (
     <LiveProvider

@@ -48,7 +48,7 @@ export function SupportCard({ ticketId }: { ticketId: string }) {
   }, [ticketId, form]);
 
   const onSubmit = async (data: SupportFormData) => {
-    await updateTicketStatus(ticketId, data, setIsLoading);
+    await updateTicketStatus(ticketId, data);
   };
 
   return (

@@ -41,6 +41,7 @@ export const createTicket = async (data: TicketData) => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -120,7 +121,9 @@ export const fetchAllTickets = async (): Promise<
   z.infer<typeof NewTicketSchema>[] | null
 > => {
   try {
-    const response = await fetch(`${backendURL}/api/v1/support/tickets`);
+    const response = await fetch(`${backendURL}/api/v1/support/tickets`, {
+      credentials: "include",
+    });
     const data = await response.json();
     if (response.ok) {
       return data as z.infer<typeof NewTicketSchema>[];
@@ -146,6 +149,9 @@ export const fetchPaginatedTickets = async (
   try {
     const response = await fetch(
       `${backendURL}/api/v1/support/tickets/paginated?page=${page}&limit=${limit}`,
+      {
+        credentials: "include",
+      },
     );
     const data = await response.json();
     if (response.ok) {

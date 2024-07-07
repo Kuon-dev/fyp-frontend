@@ -62,7 +62,6 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
     try {
       // e.preventDefault()
       setIsLoading(true);
-      console.log(data);
       const res = await fetch(`${window.ENV?.BACKEND_URL}/api/v1/login`, {
         method: "POST",
         headers: {

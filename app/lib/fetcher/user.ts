@@ -31,9 +31,6 @@ export const getCurrentUserProfileData = async (
     if (response.ok) {
       return data as Me;
     } else {
-      console.log(data.message);
-      console.log(data.name);
-      // if (data.name === "UnAuthorizedException)
       return null;
     }
   } catch (error) {
