@@ -29,6 +29,7 @@ import {
 import {
   Grid3x3Icon,
   MoveHorizontalIcon,
+  PencilLine,
   PlusIcon,
   SearchIcon,
 } from "lucide-react";
@@ -103,7 +104,7 @@ export default function Component() {
                     <DialogTrigger onClick={() => setDialogOpen(true)} asChild>
                       <Button variant="outline" size="sm">
                         <PlusIcon className="w-4 h-4 mr-2" />
-                        New Pen
+                        New Repo
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
@@ -125,10 +126,6 @@ export default function Component() {
                         </Button>
                       </DialogFooter>
                     </DialogContent>
-                    <Button variant="outline" size="sm">
-                      <Grid3x3Icon className="w-4 h-4 mr-2" />
-                      Grid View
-                    </Button>
                   </Dialog>
                 </div>
               </div>
@@ -174,14 +171,20 @@ export default function Component() {
                                 size="icon"
                                 className="ml-auto"
                               >
-                                <MoveHorizontalIcon className="w-4 h-4" />
+                                <PencilLine className="w-4 h-4" />
                                 <span className="sr-only">Toggle menu</span>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Project</DropdownMenuItem>
+                              <Link
+                                to={`${window.ENV.APP_URL}/repo/edit/${project.id}`}
+                              >
+                                <DropdownMenuItem>
+                                  Edit Project
+                                </DropdownMenuItem>
+                              </Link>
                               <DropdownMenuItem>
-                                View Project Details
+                                Edit Project Details
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
