@@ -155,7 +155,7 @@ export default function Component() {
                         className="block"
                       >
                         <iframe
-                          src={`${window.ENV.APP_URL}/${project.id}`}
+                          src={`${window.ENV.APP_URL}/preview/repo/${project.id}`}
                           title={project.name}
                           width="100%"
                           height="200"

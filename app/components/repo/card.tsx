@@ -49,11 +49,16 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
     };
 
     return (
-      <Card
-        ref={ref}
-        className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
+      <a
+        href={`${appUrl}/preview/repo/${repo.id}`}
+        className="block"
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        <Link to={`${appUrl}/preview/repo/${repo.id}`} className="block">
+        <Card
+          ref={ref}
+          className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
+        >
           <div className="dark:bg-gray-900 min-h-64 relative">
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800">
@@ -70,74 +75,18 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
               onError={handleError}
             />
           </div>
-        </Link>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {repo.name}
-            </h3>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-auto">
-                  <PencilIcon className="w-4 h-4" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <button
-                        type="button"
-                        className="w-full text-left"
-                        onClick={() => setDialogOpen(true)}
-                      >
-                        Edit Project
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Project</DialogTitle>
-                        <DialogDescription>
-                          Modify the project details below.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div>
-                          <Input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Project name"
-                          />
-                        </div>
-                        <div>
-                          <Textarea
-                            value={description ?? ""}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Project description"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => setDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={handleSave}>Save</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400 line-clamp-2">
-            {repo.description}
-          </p>
-        </CardContent>
-      </Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                {repo.name}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 line-clamp-2">
+              {repo.description}
+            </p>
+          </CardContent>
+        </Card>
+      </a>
     );
   },
 );

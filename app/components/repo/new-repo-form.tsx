@@ -180,6 +180,13 @@ export function RepoForm({ defaultValues }: RepoFormProps) {
                 <Input
                   {...field}
                   type="number"
+                  onChange={(e) => {
+                    if (e.target.value === "") e.target.value = "0";
+                    else if (e.target.value.startsWith("0"))
+                      e.target.value = e.target.value.slice(1);
+                    // if it is 0, set it to 0
+                    field.onChange(parseInt(e.target.value));
+                  }}
                   placeholder="Enter project price"
                 />
               </FormControl>

@@ -32,7 +32,6 @@ export default function DashboardLayout() {
   const nav = useNavigate();
 
   React.useEffect(() => {
-    if (!user) nav("/login");
     switch (user?.user.role) {
       case "admin":
         setSidebarLinks(adminSidebarLinks);
