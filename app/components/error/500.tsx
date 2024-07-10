@@ -29,3 +29,18 @@ export default function ErrorComponent() {
     </div>
   );
 }
+
+export const ErrorComponentNoButton = () => {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 px-4 dark:bg-gray-900">
+      <div className="mx-auto max-w-md text-center">
+        <h1 className="text-6xl font-bold text-gray-900 dark:text-gray-50">
+          500
+        </h1>
+        <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
+          Oops, something went wrong on our end.
+        </p>
+      </div>
+    </div>
+  );
+};

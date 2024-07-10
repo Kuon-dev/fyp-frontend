@@ -102,6 +102,7 @@ export const getRepoById = async (id: string): Promise<RepoResponse | null> => {
     });
     const data = await response.json();
     if (response.ok) {
+      console.log(data);
       return data;
       // return RepoSchema.parse(data);
     } else {
@@ -110,6 +111,32 @@ export const getRepoById = async (id: string): Promise<RepoResponse | null> => {
   } catch (error: unknown) {
     if (window) showErrorToast(error);
     else console.log(error);
+    return null;
+  }
+};
+
+// server only
+// because this can expose the source code
+export const getRepoByIdPublic = async (
+  id: string,
+): Promise<RepoResponse | null> => {
+  try {
+    if (window) return null;
+    const response = await fetch(`${backendURL}/api/v1/repo/${id}/public`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+    if (response.ok) {
+      return data;
+      // return RepoSchema.parse(data);
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error: unknown) {
     return null;
   }
 };

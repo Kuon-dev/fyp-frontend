@@ -26,21 +26,10 @@ import { getCurrentUserProfileData } from "./lib/fetcher/user";
 import BannedBanner from "./components/auth/banned";
 import {
   ExternalScripts,
-  ExternalScriptsHandle,
+  //ExternalScriptsHandle,
 } from "remix-utils/external-scripts";
 
-type LoaderData = SerializeFrom<typeof loader>;
-
-// export const handle: ExternalScriptsHandle<LoaderData> = {
-//   scripts({ id, data, params, matches, location, parentsData }) {
-//     return [
-//       {
-//         src: "https://js.stripe.com/v3/",
-//         crossOrigin: "anonymous",
-//       },
-//     ];
-//   },
-// };
+//type LoaderData = SerializeFrom<typeof loader>;
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -57,14 +46,12 @@ export const loader: LoaderFunction = async ({ request }) => {
           Cookie: cookieHeader,
         },
       }).then((r) => r.json());
-      console.log(res);
       user = res ?? null;
-      //if (res.ok) {
-      //  if (res.status !== 204)
-      //  console.log('204')
-      //  user = await res.json() ?? null
-      //  console.log(user)
-      //}
+      if (res.ok) {
+        if (res.status !== 204) console.log("204");
+        user = (await res.json()) ?? null;
+        console.log(user);
+      }
     }
   } catch (e) {
     if (e instanceof Response && e.status === 401) {
