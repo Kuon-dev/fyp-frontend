@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@dicebear/collection':
         specifier: ^8.0.1
-        version: 8.0.1(@dicebear/core@8.0.1)
+        version: 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
       '@dicebear/core':
         specifier: ^8.0.1
-        version: 8.0.1
+        version: 8.0.1(@resvg/resvg-js@2.6.2)
       '@hookform/resolvers':
         specifier: ^3.3.4
         version: 3.4.0(react-hook-form@7.51.4(react@18.3.1))
@@ -116,6 +116,9 @@ importers:
       '@remix-run/serve':
         specifier: ^2.9.1
         version: 2.9.2(typescript@5.4.5)
+      '@resvg/resvg-js':
+        specifier: ^2.6.2
+        version: 2.6.2
       '@stripe/react-stripe-js':
         specifier: ^2.7.1
         version: 2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1757,6 +1760,82 @@ packages:
 
   '@remix-run/web-stream@1.1.0':
     resolution: {integrity: sha512-KRJtwrjRV5Bb+pM7zxcTJkhIqWWSy+MYsIxHK+0m5atcznsf15YwUBWHWulZerV2+vvHH1Lp1DD7pw6qKW8SgA==}
+
+  '@resvg/resvg-js-android-arm-eabi@2.6.2':
+    resolution: {integrity: sha512-FrJibrAk6v29eabIPgcTUMPXiEz8ssrAk7TXxsiZzww9UTQ1Z5KAbFJs+Z0Ez+VZTYgnE5IQJqBcoSiMebtPHA==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [android]
+
+  '@resvg/resvg-js-android-arm64@2.6.2':
+    resolution: {integrity: sha512-VcOKezEhm2VqzXpcIJoITuvUS/fcjIw5NA/w3tjzWyzmvoCdd+QXIqy3FBGulWdClvp4g+IfUemigrkLThSjAQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [android]
+
+  '@resvg/resvg-js-darwin-arm64@2.6.2':
+    resolution: {integrity: sha512-nmok2LnAd6nLUKI16aEB9ydMC6Lidiiq2m1nEBDR1LaaP7FGs4AJ90qDraxX+CWlVuRlvNjyYJTNv8qFjtL9+A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@resvg/resvg-js-darwin-x64@2.6.2':
+    resolution: {integrity: sha512-GInyZLjgWDfsVT6+SHxQVRwNzV0AuA1uqGsOAW+0th56J7Nh6bHHKXHBWzUrihxMetcFDmQMAX1tZ1fZDYSRsw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@resvg/resvg-js-linux-arm-gnueabihf@2.6.2':
+    resolution: {integrity: sha512-YIV3u/R9zJbpqTTNwTZM5/ocWetDKGsro0SWp70eGEM9eV2MerWyBRZnQIgzU3YBnSBQ1RcxRZvY/UxwESfZIw==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [linux]
+
+  '@resvg/resvg-js-linux-arm64-gnu@2.6.2':
+    resolution: {integrity: sha512-zc2BlJSim7YR4FZDQ8OUoJg5holYzdiYMeobb9pJuGDidGL9KZUv7SbiD4E8oZogtYY42UZEap7dqkkYuA91pg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@resvg/resvg-js-linux-arm64-musl@2.6.2':
+    resolution: {integrity: sha512-3h3dLPWNgSsD4lQBJPb4f+kvdOSJHa5PjTYVsWHxLUzH4IFTJUAnmuWpw4KqyQ3NA5QCyhw4TWgxk3jRkQxEKg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@resvg/resvg-js-linux-x64-gnu@2.6.2':
+    resolution: {integrity: sha512-IVUe+ckIerA7xMZ50duAZzwf1U7khQe2E0QpUxu5MBJNao5RqC0zwV/Zm965vw6D3gGFUl7j4m+oJjubBVoftw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@resvg/resvg-js-linux-x64-musl@2.6.2':
+    resolution: {integrity: sha512-UOf83vqTzoYQO9SZ0fPl2ZIFtNIz/Rr/y+7X8XRX1ZnBYsQ/tTb+cj9TE+KHOdmlTFBxhYzVkP2lRByCzqi4jQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@resvg/resvg-js-win32-arm64-msvc@2.6.2':
+    resolution: {integrity: sha512-7C/RSgCa+7vqZ7qAbItfiaAWhyRSoD4l4BQAbVDqRRsRgY+S+hgS3in0Rxr7IorKUpGE69X48q6/nOAuTJQxeQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@resvg/resvg-js-win32-ia32-msvc@2.6.2':
+    resolution: {integrity: sha512-har4aPAlvjnLcil40AC77YDIk6loMawuJwFINEM7n0pZviwMkMvjb2W5ZirsNOZY4aDbo5tLx0wNMREp5Brk+w==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@resvg/resvg-js-win32-x64-msvc@2.6.2':
+    resolution: {integrity: sha512-ZXtYhtUr5SSaBrUDq7DiyjOFJqBVL/dOBN7N/qmi/pO0IgiWW/f/ue3nbvu9joWE5aAKDoIzy/CxsY0suwGosQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@resvg/resvg-js@2.6.2':
+    resolution: {integrity: sha512-xBaJish5OeGmniDj9cW5PRa/PtmuVU3ziqrbr5xJj901ZDN4TosrVaNZpEiLZAxdfnhAe7uQ7QFWfjPe9d9K2Q==}
+    engines: {node: '>= 10'}
 
   '@rollup/rollup-android-arm-eabi@4.17.2':
     resolution: {integrity: sha512-NM0jFxY8bB8QLkoKxIQeObCaDlJKewVlIEkuyYKm5An1tdVZ966w2+MPQ2l8LBZLjR+SgyV+nRkTIunzOYBMLQ==}
@@ -5211,163 +5290,165 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.5
       to-fast-properties: 2.0.0
 
-  '@dicebear/adventurer-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/adventurer-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/adventurer@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/adventurer@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/avataaars-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/avataaars-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/avataaars@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/avataaars@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/big-ears-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/big-ears-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/big-ears@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/big-ears@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/big-smile@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/big-smile@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/bottts-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/bottts-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/bottts@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/bottts@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/collection@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/collection@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/adventurer': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/adventurer-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/avataaars': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/avataaars-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/big-ears': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/big-ears-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/big-smile': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/bottts': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/bottts-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/core': 8.0.1
-      '@dicebear/croodles': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/croodles-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/fun-emoji': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/icons': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/identicon': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/initials': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/lorelei': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/lorelei-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/micah': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/miniavs': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/notionists': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/notionists-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/open-peeps': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/personas': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/pixel-art': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/pixel-art-neutral': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/rings': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/shapes': 8.0.1(@dicebear/core@8.0.1)
-      '@dicebear/thumbs': 8.0.1(@dicebear/core@8.0.1)
+      '@dicebear/adventurer': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/adventurer-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/avataaars': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/avataaars-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/big-ears': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/big-ears-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/big-smile': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/bottts': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/bottts-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
+      '@dicebear/croodles': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/croodles-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/fun-emoji': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/icons': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/identicon': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/initials': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/lorelei': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/lorelei-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/micah': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/miniavs': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/notionists': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/notionists-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/open-peeps': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/personas': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/pixel-art': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/pixel-art-neutral': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/rings': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/shapes': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
+      '@dicebear/thumbs': 8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))
 
-  '@dicebear/converter@8.0.1':
+  '@dicebear/converter@8.0.1(@resvg/resvg-js@2.6.2)':
     dependencies:
       '@types/json-schema': 7.0.15
       tmp-promise: 3.0.3
+    optionalDependencies:
+      '@resvg/resvg-js': 2.6.2
 
-  '@dicebear/core@8.0.1':
+  '@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2)':
     dependencies:
-      '@dicebear/converter': 8.0.1
+      '@dicebear/converter': 8.0.1(@resvg/resvg-js@2.6.2)
       '@types/json-schema': 7.0.15
     transitivePeerDependencies:
       - '@resvg/resvg-js'
       - exiftool-vendored
       - sharp
 
-  '@dicebear/croodles-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/croodles-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/croodles@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/croodles@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/fun-emoji@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/fun-emoji@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/icons@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/icons@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/identicon@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/identicon@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/initials@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/initials@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/lorelei-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/lorelei-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/lorelei@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/lorelei@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/micah@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/micah@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/miniavs@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/miniavs@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/notionists-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/notionists-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/notionists@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/notionists@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/open-peeps@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/open-peeps@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/personas@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/personas@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/pixel-art-neutral@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/pixel-art-neutral@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/pixel-art@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/pixel-art@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/rings@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/rings@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/shapes@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/shapes@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
-  '@dicebear/thumbs@8.0.1(@dicebear/core@8.0.1)':
+  '@dicebear/thumbs@8.0.1(@dicebear/core@8.0.1(@resvg/resvg-js@2.6.2))':
     dependencies:
-      '@dicebear/core': 8.0.1
+      '@dicebear/core': 8.0.1(@resvg/resvg-js@2.6.2)
 
   '@emotion/hash@0.9.1': {}
 
@@ -6553,6 +6634,57 @@ snapshots:
   '@remix-run/web-stream@1.1.0':
     dependencies:
       web-streams-polyfill: 3.3.3
+
+  '@resvg/resvg-js-android-arm-eabi@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-android-arm64@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-darwin-arm64@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-darwin-x64@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-linux-arm-gnueabihf@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-linux-arm64-gnu@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-linux-arm64-musl@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-linux-x64-gnu@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-linux-x64-musl@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-win32-arm64-msvc@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-win32-ia32-msvc@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js-win32-x64-msvc@2.6.2':
+    optional: true
+
+  '@resvg/resvg-js@2.6.2':
+    optionalDependencies:
+      '@resvg/resvg-js-android-arm-eabi': 2.6.2
+      '@resvg/resvg-js-android-arm64': 2.6.2
+      '@resvg/resvg-js-darwin-arm64': 2.6.2
+      '@resvg/resvg-js-darwin-x64': 2.6.2
+      '@resvg/resvg-js-linux-arm-gnueabihf': 2.6.2
+      '@resvg/resvg-js-linux-arm64-gnu': 2.6.2
+      '@resvg/resvg-js-linux-arm64-musl': 2.6.2
+      '@resvg/resvg-js-linux-x64-gnu': 2.6.2
+      '@resvg/resvg-js-linux-x64-musl': 2.6.2
+      '@resvg/resvg-js-win32-arm64-msvc': 2.6.2
+      '@resvg/resvg-js-win32-ia32-msvc': 2.6.2
+      '@resvg/resvg-js-win32-x64-msvc': 2.6.2
 
   '@rollup/rollup-android-arm-eabi@4.17.2':
     optional: true
