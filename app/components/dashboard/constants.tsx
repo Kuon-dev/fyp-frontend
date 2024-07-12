@@ -2,7 +2,7 @@ import { Home, LineChart, Package, ShoppingCart, Users2 } from "lucide-react";
 
 export const adminSidebarLinks = [
   {
-    to: "/dashboard",
+    to: "/app",
     icon: <Home className="h-5 w-5" />,
     tooltip: "Dashboard",
   },
@@ -30,7 +30,7 @@ export const adminSidebarLinks = [
 
 export const moderatorSidebarLinks = [
   {
-    to: "/dashboard",
+    to: "/app",
     icon: <Home className="h-5 w-5" />,
     tooltip: "Dashboard",
   },
@@ -53,7 +53,7 @@ export const moderatorSidebarLinks = [
 
 export const sellerSidebarLinks = [
   {
-    to: "/dashboard",
+    to: "/app",
     icon: <Home className="h-5 w-5" />,
     tooltip: "Dashboard",
   },
@@ -76,7 +76,7 @@ export const sellerSidebarLinks = [
 
 export const buyerSidebarLinks = [
   {
-    to: "/dashboard",
+    to: "/app",
     icon: <Home className="h-5 w-5" />,
     tooltip: "Dashboard",
   },

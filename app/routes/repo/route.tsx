@@ -17,9 +17,9 @@ import { useDashboardStore } from "@/stores/dashboard-store";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // if (request.url === "/repo") return redirect("/settings/profile");
 
-  if (!checkAuthCookie(request)) {
-    return redirect("/login");
-  }
+  //if (!checkAuthCookie(request)) {
+  //  return redirect("/login");
+  //}
   // else no redirect
   return {
     props: {},
@@ -57,22 +57,20 @@ export default function DashboardLayout() {
   };
 
   return (
-    user && (
-      <div>
-        <DashboardSidebar
-          sidebarLinks={sidebarLinks}
-          settingsLink={settingsLink}
-        />
-        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-          <Layout className="flex min-h-screen w-full flex-col relative">
-            <LayoutBody>
-              <main className="">
-                <Outlet />
-              </main>
-            </LayoutBody>
-          </Layout>
-        </div>
+    <div>
+      <DashboardSidebar
+        sidebarLinks={sidebarLinks}
+        settingsLink={settingsLink}
+      />
+      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+        <Layout className="flex min-h-screen w-full flex-col relative">
+          <LayoutBody>
+            <main className="">
+              <Outlet />
+            </main>
+          </LayoutBody>
+        </Layout>
       </div>
-    )
+    </div>
   );
 }

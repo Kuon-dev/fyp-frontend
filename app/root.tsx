@@ -15,14 +15,12 @@ import type {
   LinksFunction,
   LoaderFunction,
   ActionFunction,
-  SerializeFrom,
 } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
-import { Me, useDashboardStore } from "./stores/dashboard-store";
+import { Me, useUserStore } from "./stores/user-store";
 import { useEffect } from "react";
-import { getCurrentUserProfileData } from "./lib/fetcher/user";
 import BannedBanner from "./components/auth/banned";
 import {
   ExternalScripts,
@@ -50,10 +48,10 @@ export const loader: LoaderFunction = async ({ request }) => {
       if (res.ok) {
         if (res.status !== 204) console.log("204");
         user = (await res.json()) ?? null;
-        console.log(user);
       }
     }
   } catch (e) {
+    console.error(e);
     if (e instanceof Response && e.status === 401) {
       // return redirect("/login");
     }
@@ -106,7 +104,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       BACKEND_URL: string;
     };
   };
-  const setUser = useDashboardStore((state) => state.setUser);
+  const setUser = useUserStore((state) => state.setUser);
 
   useEffect(() => {
     const userData = data?.userData ?? null;
@@ -131,7 +129,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         ></script>
         <ScrollRestoration />
         <ExternalScripts />
-        {data?.userData?.user.bannedUntil && <BannedBanner />}
+        {data?.userData?.user?.bannedUntil && <BannedBanner />}
         {data?.showBanner && <CookieBanner />}
         <Scripts />
       </body>

@@ -16,9 +16,8 @@ import {
 } from "@/components/dashboard/constants";
 import { Settings } from "lucide-react";
 import VerifyEmailComponent from "@/components/dashboard/verify-email";
-import { useDashboardStore } from "@/stores/dashboard-store";
+import { useUserStore } from "@/stores/user-store";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { sendVerifyEmailCodeFromUser } from "@/lib/fetcher/user";
 import { ClientOnly } from "remix-utils/client-only";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -33,15 +32,27 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export const action: ActionFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie") ?? "";
-  await sendVerifyEmailCodeFromUser(cookieHeader);
-  return redirect("/dashboard");
+  const response = await fetch(
+    `${process.env.BACKEND_URL}/api/v1/send-verify-code`,
+    {
+      method: "POST",
+      headers: {
+        Cookie: cookieHeader,
+      },
+    },
+  );
+  if (response.ok) {
+    return true;
+  } else {
+    return redirect("/app");
+  }
 };
 
 export default function DashboardLayout() {
   const [sidebarLinks, setSidebarLinks] = React.useState<LinkProps[]>([]);
-  const [user] = useDashboardStore((state) => [state.user]);
+  const [user] = useUserStore((state) => [state.user]);
   React.useEffect(() => {
-    switch (user?.user.role) {
+    switch (user?.user?.role) {
       case "admin":
         setSidebarLinks(adminSidebarLinks);
         break;
@@ -57,6 +68,7 @@ export default function DashboardLayout() {
       default:
         setSidebarLinks(buyerSidebarLinks);
     }
+    console.log(user);
   }, [user]);
 
   const settingsLink: LinkProps = {
