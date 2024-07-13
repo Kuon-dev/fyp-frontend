@@ -21,10 +21,12 @@ export default function ErrorComponent() {
         <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
           Oops, something went wrong on our end.
         </p>
-        <Button onClick={handlePageRefresh}>Try again</Button>
-        <Button variant="outline" onClick={handlePreviousPage}>
-          Go back
-        </Button>
+        <div className="flex flex-row gap-4 justify-center items-center mt-2">
+          <Button onClick={handlePageRefresh}>Try again</Button>
+          <Button variant="outline" onClick={handlePreviousPage}>
+            Go back
+          </Button>
+        </div>
       </div>
     </div>
   );

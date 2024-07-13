@@ -16,7 +16,7 @@ export const ErrorBoundary = () => {
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   if (!checkAuthCookie(request)) return redirect("/login");
-  const res = await fetch(`${process.env.BACKEND_URL}/api/v1/comments`, {
+  const res = await fetch(`${process.env.BACKEND_URL}/api/v1/reviews`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -24,24 +24,24 @@ export const loader: LoaderFunction = async ({ request }) => {
       Cookie: cookieHeader?.toString() ?? "",
     },
   });
-  console.log(res);
-  //if (!res.ok) throw new Error("Oh no! Something went wrong!");
+  if (!res.ok) throw new Error("Oh no! Something went wrong!");
   const data = await res.json();
+  console.log(data);
   return json({
-    items: data ?? [],
+    items: data,
     success: true,
   });
 };
 
-export default function FlaggedCommentsPage() {
-  const comments = useLoaderData<typeof loader>();
+export default function FlaggedReviewsPage() {
+  const reviews = useLoaderData<typeof loader>();
   return (
     <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
       <ClientOnly fallback={<LoadingComponent />}>
         {() => (
           <>
             <DataTable
-              data={comments.items ?? []}
+              data={reviews.items ?? []}
               columns={columns}
               filters={filters}
               search="content"
