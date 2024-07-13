@@ -46,7 +46,7 @@ type FormData = z.infer<typeof schema>;
 export { schema, type FormData };
 
 export default function ProfileEditComponent() {
-  const { user, isLoading, fetchUser } = useUserStore();
+  const { user, isLoading, checkLoginStatus } = useUserStore();
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -89,12 +89,12 @@ export default function ProfileEditComponent() {
 
   useEffect(() => {
     const initializeUser = async () => {
-      await fetchUser();
+      await checkLoginStatus();
       //setUserAvatar(user?.profile.profileImg ?? '');
       setInitialLoading(false);
     };
     initializeUser();
-  }, [fetchUser, user?.profile.profileImg]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -150,7 +150,7 @@ export default function ProfileEditComponent() {
         throw new Error("Failed to update profile");
       }
 
-      await fetchUser();
+      await checkLoginStatus();
       toast.success("Profile updated successfully");
     } catch (error) {
       showErrorToast(error);

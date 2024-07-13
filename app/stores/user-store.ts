@@ -1,6 +1,7 @@
 import { showErrorToast } from "@/lib/handle-error";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { toast } from "sonner";
 
 export type Me = {
   user: Omit<BackendUser, "passwordHash">;
@@ -33,8 +34,16 @@ export const useUserStore = create<UserStoreState>()(
             credentials: "include",
           });
           if (response.ok) {
-            if (response.status === 204)
-              throw new Error("session expired, please login again");
+            if (response.status === 204) {
+              toast("session expired, please login again", {
+                action: {
+                  label: "Undo",
+                  onClick: () => {
+                    window.location.href = "/login";
+                  },
+                },
+              });
+            }
             const userData: Me = await response?.json();
             setUser(userData);
             return true;

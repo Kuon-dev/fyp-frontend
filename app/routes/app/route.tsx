@@ -17,7 +17,7 @@ import {
 import { Settings } from "lucide-react";
 import VerifyEmailComponent from "@/components/dashboard/verify-email";
 import { useUserStore } from "@/stores/user-store";
-import { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { LoaderFunction } from "@remix-run/node";
 import { ClientOnly } from "remix-utils/client-only";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -28,24 +28,6 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (!authCookie) throw redirect("/login", 401);
 
   return "";
-};
-
-export const action: ActionFunction = async ({ request }) => {
-  const cookieHeader = request.headers.get("Cookie") ?? "";
-  const response = await fetch(
-    `${process.env.BACKEND_URL}/api/v1/send-verify-code`,
-    {
-      method: "POST",
-      headers: {
-        Cookie: cookieHeader,
-      },
-    },
-  );
-  if (response.ok) {
-    return true;
-  } else {
-    return redirect("/app");
-  }
 };
 
 export default function DashboardLayout() {
@@ -68,7 +50,6 @@ export default function DashboardLayout() {
       default:
         setSidebarLinks(buyerSidebarLinks);
     }
-    console.log(user);
   }, [user]);
 
   const settingsLink: LinkProps = {
