@@ -18,30 +18,27 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   if (!checkAuthCookie(request)) return redirect("/login");
 
-  const data = await fetch(
-    `${process.env.BACKEND_URL}/api/v1/support/tickets`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Cookie: cookieHeader?.toString() ?? "",
-      },
+  const res = await fetch(`${process.env.BACKEND_URL}/api/v1/users/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Cookie: cookieHeader?.toString() ?? "",
     },
-  ).then((res) => res.json());
-  console.log(data);
-  if (data.status !== "success")
-    throw new Error("Oh no! Something went wrong!");
+  });
+  if (!res.ok) throw new Error("Oh no! Something went wrong!");
+
+  const data = await res.json();
   return json({
-    items: data.tickets ?? [],
+    items: data,
     sucess: data.ok,
   });
 };
 
 const filters = [
   {
-    columnId: "status",
-    title: "Status",
+    columnId: "role",
+    title: "Role",
     options: roleOptions,
   },
   // {
@@ -55,7 +52,7 @@ const filters = [
   // },
 ];
 
-export default function TicketIndex() {
+export default function Index() {
   const tickets = useLoaderData<typeof loader>();
 
   return (
@@ -67,6 +64,7 @@ export default function TicketIndex() {
               data={tickets.items ?? []}
               columns={columns}
               filters={filters}
+              search="email"
             />
           </>
         )}

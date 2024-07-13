@@ -2,9 +2,6 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { useNavigate } from "@remix-run/react";
 import { ClientOnly } from "remix-utils/client-only";
-import { showErrorToast } from "@/lib/handle-error";
-import { ActionFunction, redirect } from "@remix-run/node";
-import { sendVerifyEmailCodeFromUser } from "@/lib/fetcher/user";
 
 export default function VerifyEmailComponent() {
   const nav = useNavigate();
@@ -35,7 +32,7 @@ export default function VerifyEmailComponent() {
                     type="button"
                     className="w-full mt-4"
                     variant="outline"
-                    onClick={() => nav("/dashboard")}
+                    onClick={() => nav("/app")}
                   >
                     Refresh
                   </Button>

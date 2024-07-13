@@ -20,11 +20,13 @@ export type FilterOption = {
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filters: FilterOption[];
+  search?: string; // for search column filtering
 }
 
 export function DataTableToolbar<TData>({
   table,
   filters,
+  search,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -32,10 +34,15 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
         <Input
-          placeholder="Filter tasks..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter..."
+          value={
+            (table.getColumn(search ?? "title")?.getFilterValue() as string) ??
+            ""
+          }
           onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
+            table
+              .getColumn(search ?? "title")
+              ?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />

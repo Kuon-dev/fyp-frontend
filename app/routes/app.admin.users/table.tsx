@@ -11,6 +11,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import type { ZodSchema } from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { showErrorToast } from "@/lib/handle-error";
+import { toast } from "sonner";
 
 // User schema
 export const userSchema = z.object({
@@ -46,26 +59,70 @@ export function UserTableRowActions<TData>({
   tableSchema,
 }: DataTableRowActionsProps<TData>) {
   const user = tableSchema.parse(row.original);
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/users/${user.email}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error("Oh no! Something went wrong!");
+      }
+      // Handle success
+      toast.success("User deleted successfully");
+      window.location.reload();
+    } catch (e) {
+      showErrorToast(e);
+    }
+  };
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
-        >
-          <DotsHorizontalIcon className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>View Profile</DropdownMenuItem>
-        <DropdownMenuItem>Edit User</DropdownMenuItem>
-        <DropdownMenuItem>Delete User</DropdownMenuItem>
-        <DropdownMenuItem>Change Role</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <AlertDialog>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          >
+            <DotsHorizontalIcon className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem>View Profile</DropdownMenuItem>
+          <DropdownMenuItem>Edit User</DropdownMenuItem>
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem className="text-red-500">
+              Delete User
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+        </DropdownMenuContent>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </DropdownMenu>
+    </AlertDialog>
   );
 }
+
+export const toolbar = {};
 
 export const columns: ColumnDef<UserSchema>[] = [
   {
