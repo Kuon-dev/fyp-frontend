@@ -19,47 +19,25 @@ import type {
 import { redirect } from "@remix-run/node";
 import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
-import { Me, useUserStore } from "./stores/user-store";
+import { useUserStore } from "./stores/user-store";
 import { useEffect } from "react";
 import BannedBanner from "./components/auth/banned";
-import {
-  ExternalScripts,
-  //ExternalScriptsHandle,
-} from "remix-utils/external-scripts";
-
-//type LoaderData = SerializeFrom<typeof loader>;
+import { ExternalScripts } from "remix-utils/external-scripts";
+import { cssBundleHref } from "@remix-run/css-bundle";
+//import styles from '~/styles/global.css?url';
+import sonnerStyles from "@/../styles/sonner.css?url";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  { rel: "stylesheet", href: sonnerStyles },
+  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
-
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
-  let user: Me | null = null;
-  try {
-    if (cookieHeader) {
-      const res = await fetch(`${process.env.BACKEND_URL}/api/v1/me`, {
-        headers: {
-          Cookie: cookieHeader,
-        },
-      }).then((r) => r.json());
-      user = res ?? null;
-      if (res.ok) {
-        if (res.status !== 204) console.log("204");
-        user = (await res.json()) ?? null;
-      }
-    }
-  } catch (e) {
-    console.error(e);
-    if (e instanceof Response && e.status === 401) {
-      // return redirect("/login");
-    }
-  }
 
   return json({
     showBanner: !cookie.accepted,
-    userData: user,
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
       APP_URL: process.env.APP_URL,
@@ -77,7 +55,6 @@ declare global {
 }
 
 export const action: ActionFunction = async ({ request }) => {
-  // set cookie consent
   const cookieHeader = request.headers.get("Cookie");
   const cookie = (await cookieConsent.parse(cookieHeader)) || {};
   const formData = await request.formData();
@@ -97,21 +74,13 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useLoaderData<typeof loader>() as {
-    showBanner: boolean;
-    userData: Me | null;
-    ENV: {
-      BACKEND_URL: string;
-    };
-  };
-  const setUser = useUserStore((state) => state.setUser);
+  const data = useLoaderData<typeof loader>();
+  const { checkLoginStatus, user } = useUserStore();
 
   useEffect(() => {
-    const userData = data?.userData ?? null;
-    if (userData) {
-      setUser(userData);
-    }
-  });
+    checkLoginStatus();
+  }, []);
+
   return (
     <html lang="en">
       <head>
@@ -129,7 +98,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         ></script>
         <ScrollRestoration />
         <ExternalScripts />
-        {data?.userData?.user?.bannedUntil && <BannedBanner />}
+        {user?.user?.bannedUntil && <BannedBanner />}
         {data?.showBanner && <CookieBanner />}
         <Scripts />
       </body>
@@ -140,8 +109,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <>
-      <Toaster />
       <Outlet />
+      <Toaster />
     </>
   );
 }

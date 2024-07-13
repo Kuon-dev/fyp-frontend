@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { getHighlighter } from "shiki";
-import { injectCSS } from "@/integrations/monaco/inject-css";
+import { injectCSS, injectTailwind } from "@/integrations/monaco/inject-css";
 import { toast } from "sonner";
 import {
   Menubar,
@@ -32,6 +32,7 @@ import { Layout, LayoutBody, LayoutHeader } from "@/components/custom/layout";
 import { Spinner } from "@/components/custom/spinner";
 import { ClientOnly } from "remix-utils/client-only";
 import { Link, useParams } from "@remix-run/react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import debounce from "lodash/debounce";
 
@@ -131,7 +132,7 @@ export default function EditorLayout() {
         throw new Error("Failed to save changes");
       }
 
-      const result = await response.json();
+      //const result = await response.json();
       toast.success("Changes saves successfully");
     } catch (error) {
       console.error("Error saving changes:", error);
@@ -322,7 +323,11 @@ function CodeRepoEditorPreview() {
 
   return (
     <div className="w-full h-full">
-      <LiveProvider code={renderValue} noInline scope={{ injectCSS, cssValue }}>
+      <LiveProvider
+        code={renderValue}
+        noInline
+        scope={{ injectCSS, cssValue, injectTailwind }}
+      >
         <ClientOnly fallback={<MonacoLoading />}>
           {() => (
             <ResizablePanelGroup
@@ -330,7 +335,7 @@ function CodeRepoEditorPreview() {
               className="rounded-lg border"
             >
               <ResizablePanel defaultSize={50}>
-                <div className="flex min-h-screen h-full items-center justify-center">
+                <ScrollArea className="flex min-h-screen h-full items-center justify-center">
                   <TabsContent value="main" className="w-full h-full">
                     <Editor
                       height="100vh"
@@ -365,13 +370,15 @@ function CodeRepoEditorPreview() {
                       onMount={handleEditorCssDidMount}
                     />
                   </TabsContent>
-                </div>
+                </ScrollArea>
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50}>
-                <div className="bg-white min-h-screen">
-                  <LivePreview className="w-full" />
-                  <LiveError className="text-red-800 bg-red-100 mt-2" />
+                <div className="bg-slate-950 min-h-screen relative">
+                  <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]">
+                    <LivePreview className="w-full bg-black" />
+                    <LiveError className="text-red-800 bg-red-100 mt-2" />
+                  </div>
                 </div>
               </ResizablePanel>
             </ResizablePanelGroup>

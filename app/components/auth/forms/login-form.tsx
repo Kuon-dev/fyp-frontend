@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { PasswordInput } from "@/components/custom/password-input";
 import { cn } from "@/lib/utils";
+import { showErrorToast } from "@/lib/handle-error";
 
 interface UserAuthFormProps extends HTMLAttributes<HTMLDivElement> {}
 
@@ -72,7 +73,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
         credentials: "include",
       });
       if (!res.ok) {
-        const error = (await res.json()) as LoginErrorSchema;
+        const error = await res.json();
         throw new Error(error.message);
       } else {
         // set cookie
@@ -84,12 +85,8 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
       }
       setIsLoading(false);
     } catch (error) {
-      console.log(error);
+      showErrorToast(error);
       // if it is a type of error
-      if (error instanceof Error) {
-        console.error(error);
-        toast.error(error.message);
-      }
       // else toast.error('something went wrong, please try again')
       setIsLoading(false);
     }

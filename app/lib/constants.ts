@@ -4,8 +4,8 @@ export const unknownError =
 export const redirects = {
   toLogin: "/signin",
   toSignup: "/signup",
-  afterLogin: "/dashboard/stores",
+  afterLogin: "/app/dashboard/",
   afterLogout: "/",
   toVerify: "/verify-email",
-  afterVerify: "/dashboard/stores",
+  afterVerify: "/app/dashboard",
 } as const;

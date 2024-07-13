@@ -1,41 +1,188 @@
 export const DEFAULT_CSS_MONACO = `
-.custom-class {
-  color: red;
+.quiz-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #bb86fc;
+}
+
+h2 {
+  color: #03dac6;
+}
+
+.question {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.option-btn {
+  background-color: #3700b3;
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.option-btn:hover {
+  background-color: #6200ee;
+}
+
+.option-btn.selected {
+  background-color: #018786;
+}
+
+.next-btn, .restart-btn {
+  background-color: #bb86fc;
+  color: #000000;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.next-btn:hover, .restart-btn:hover {
+  background-color: #3700b3;
+  color: #ffffff;
+}
+
+.next-btn:disabled {
+  background-color: #4f4f4f;
+  cursor: not-allowed;
+}
+
+.score-section {
+  text-align: center;
+}
+
+.score-section p {
+  font-size: 1.2em;
+  margin-bottom: 20px;
 }
 `;
 
 export const DEFAULT_REACT_MONACO = `
-import * as React from 'react'
-import { render } from 'react-dom'
-import './index.css'
 
-type Props = {
-  label: string;
+import React from "react"
+import { render } from "react-dom"
+
+interface Question {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: string;
 }
-const Counter = (props: Props) => {
-  const [count, setCount] =
-    React.useState<number>(0)
+
+const QuizApp = () => {
+  const [questions, setQuestions] = React.useState<Question[]>([
+    {
+      id: 1,
+      question: "What is the capital of France?",
+      options: ["London", "Berlin", "Paris", "Madrid"],
+      correctAnswer: "Paris"
+    },
+    {
+      id: 2,
+      question: "Which planet is known as the Red Planet?",
+      options: ["Venus", "Mars", "Jupiter", "Saturn"],
+      correctAnswer: "Mars"
+    },
+    {
+      id: 3,
+      question: "Who painted the Mona Lisa?",
+      options: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"],
+      correctAnswer: "Leonardo da Vinci"
+    }
+  ]);
+  const [currentQuestion, setCurrentQuestion] = React.useState<number>(0);
+  const [score, setScore] = React.useState<number>(0);
+  const [showScore, setShowScore] = React.useState<boolean>(false);
+  const [selectedAnswer, setSelectedAnswer] = React.useState<string>("");
+
+  const handleAnswerClick = (answer: string): void => {
+    setSelectedAnswer(answer);
+  };
+
+  const handleNextQuestion = (): void => {
+    if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+      setScore(prevScore => prevScore + 1);
+    }
+
+    const nextQuestion = currentQuestion + 1;
+    if (nextQuestion < questions.length) {
+      setCurrentQuestion(nextQuestion);
+      setSelectedAnswer("");
+    } else {
+      setShowScore(true);
+    }
+  };
+
+  const restartQuiz = (): void => {
+    setCurrentQuestion(0);
+    setScore(0);
+    setShowScore(false);
+    setSelectedAnswer("");
+  };
+
   return (
-    <div>
-      <h3 style={{
-        background: 'darkslateblue',
-        padding: 8,
-        borderRadius: 4
-      }}
-      className="text-red-500"
-      >
-        {props.label}: {count} 🧮
-      </h3>
-      <button
-        onClick={() =>
-          setCount(c => c + 1)
-        }>
-        Increment
-      </button>
+    <div className="quiz-container">
+      <h1>Quiz App</h1>
+      {showScore ? (
+        <div className="score-section">
+          <h2>Quiz Completed!</h2>
+          <p>Your score: {score} out of {questions.length}</p>
+          <button onClick={restartQuiz} className="restart-btn">Restart Quiz</button>
+        </div>
+      ) : (
+        <div className="question-section">
+          <h2>Question {currentQuestion + 1}/{questions.length}</h2>
+          <p className="question">{questions[currentQuestion].question}</p>
+          <div className="options">
+            {questions[currentQuestion].options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerClick(option)}
+                className={\`option-btn \${selectedAnswer === option ? 'selected' : ''}\`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleNextQuestion}
+            disabled={!selectedAnswer}
+            className="next-btn"
+          >
+            {currentQuestion === questions.length - 1 ? 'Finish' : 'Next'}
+          </button>
+        </div>
+      )}
     </div>
-  )
-}
-render(<Counter label="Counter" />)`;
+  );
+};
+
+render(<QuizApp />);
+`;
 
 export const ENABLED_LANGUAGES: string[] = [
   "html",
