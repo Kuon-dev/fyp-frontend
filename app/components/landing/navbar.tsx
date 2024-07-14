@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { SheetTrigger, SheetContent, Sheet } from "@/components/ui/sheet";
 import { Link } from "@remix-run/react";
 import { cn } from "@/lib/utils";
-import { useDashboardStore } from "@/stores/dashboard-store";
+import { useUserStore } from "@/stores/user-store";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -12,7 +12,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const user = useDashboardStore((state) => state.user);
+  const user = useUserStore((state) => state.user);
   return (
     <section className="flex w-full shrink-0 items-center flex-col">
       <header

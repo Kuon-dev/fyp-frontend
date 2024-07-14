@@ -2,25 +2,6 @@
 import React, { forwardRef } from "react";
 import { Link } from "@remix-run/react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { PencilIcon } from "lucide-react";
 import { Spinner } from "@/components/custom/spinner";
 import type { RepoNoSource } from "@/stores/search-store";
 
@@ -31,8 +12,8 @@ interface RepoCardProps {
 export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
   ({ repo }, ref) => {
     const [dialogOpen, setDialogOpen] = React.useState(false);
-    const [name, setName] = React.useState(repo.name);
-    const [description, setDescription] = React.useState(repo.description);
+    //const [name, setName] = React.useState(repo.name);
+    //const [description, setDescription] = React.useState(repo.description);
     const [loading, setLoading] = React.useState(true);
     const appUrl = window.ENV.APP_URL;
 

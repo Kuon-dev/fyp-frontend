@@ -9,7 +9,8 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format": "prettier --write ./**/*"
   },
   "dependencies": {
     "@dicebear/collection": "^8.0.1",

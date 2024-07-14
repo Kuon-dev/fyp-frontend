@@ -40,7 +40,7 @@ type BackendCodeRepo = {
   updatedAt: Timestamp;
   deletedAt: Timestamp | null;
   visibility: Generated<Visibility>;
-  status: Generated<CodeRepoStatus>;
+  //status: Generated<CodeRepoStatus>;
   name: string;
   description: string | null;
   language: Language;

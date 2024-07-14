@@ -55,7 +55,7 @@ const sidebarNavItems = [
   //   href: "/settings/appearance",
   // },
   // {
-  //   title: "Notifications",
+  //   ttle: "Notifications",
   //   icon: <IconNotification size={18} />,
   //   href: "/settings/notifications",
   // },

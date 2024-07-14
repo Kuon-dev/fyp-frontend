@@ -44,7 +44,7 @@ const UpdateRepoSchema = RepoSchema.omit({
 }).partial();
 
 type RepoData = z.infer<typeof CreateRepoSchema>;
-type RepoResponse = z.infer<typeof RepoSchema>;
+export type RepoResponse = z.infer<typeof RepoSchema>;
 type UpdateRepoData = z.infer<typeof UpdateRepoSchema>;
 
 const SearchParamsSchema = z.object({
@@ -92,7 +92,9 @@ export const createRepo = async (
  * @param id - The ID of the repository.
  * @returns The repository data.
  */
-export const getRepoById = async (id: string): Promise<RepoResponse | null> => {
+export const getRepoById = async (
+  id: string,
+): Promise<{ repo: RepoResponse; repoCodeCheck: BackendCodeCheck } | null> => {
   try {
     const response = await fetch(`${backendURL}/api/v1/repo/${id}`, {
       credentials: "include",
