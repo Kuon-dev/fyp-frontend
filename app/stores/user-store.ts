@@ -44,7 +44,11 @@ export const useUserStore = create<UserStoreState>()(
                 },
               });
             }
-            const userData: Me = await response?.json();
+            const userData: Me | null = await response?.json();
+            if (!userData) {
+              setUser(null);
+              return false;
+            }
             setUser(userData);
             return true;
           } else {

@@ -29,7 +29,23 @@ import ReviewComponent from "@/components/repo/review";
 
 export const loader: LoaderFunction = async ({ params }) => {
   const id = params.id;
-  const data = await getRepoById(id ?? "");
+  let data;
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/api/v1/repo/${id}`,
+      {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    if (response.ok) {
+      data = await response.json();
+    }
+  } catch (error: unknown) {
+    console.log(error);
+  }
   return json({
     repo: data?.repo,
     codeCheck: data?.repoCodeCheck,
@@ -47,7 +63,7 @@ export default function RepoPreviewComponent() {
   }
 
   const copyRepoLink = () => {
-    const repoLink = `${window.ENV.APP_URL}/repo/${repo.id}`;
+    const repoLink = `${window?.ENV.APP_URL}/repo/${repo.id}`;
     navigator.clipboard
       .writeText(repoLink)
       .then(() => {
@@ -100,7 +116,7 @@ export default function RepoPreviewComponent() {
                 <div className="h-screen overflow-scroll">
                   <iframe
                     title={repo.id}
-                    src={`${window.ENV.APP_URL}/preview/repo/${repo.id}`}
+                    src={`${window?.ENV.APP_URL}/preview/repo/${repo.id}`}
                     key={repo.id}
                     className="w-full h-full"
                     loading="lazy"
@@ -368,15 +384,6 @@ function Price() {
                 </p>
               </div>
             )}
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold">Reviews</h2>
-              <div className="flex items-center">
-                <StarIcon className="w-6 h-6 text-yellow-400 mr-2" />
-                <span className="text-2xl font-bold">
-                  {repo.reviews.length} Reviews
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -96,12 +96,15 @@ export const getRepoById = async (
   id: string,
 ): Promise<{ repo: RepoResponse; repoCodeCheck: BackendCodeCheck } | null> => {
   try {
-    const response = await fetch(`${backendURL}/api/v1/repo/${id}`, {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/api/v1/repo/${id}`,
+      {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
     const data = await response.json();
     if (response.ok) {
       console.log(data);

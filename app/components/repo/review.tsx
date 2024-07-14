@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Star, ThumbsUp, ThumbsDown, MessageCircle } from "lucide-react";
+import useReviewStore from "@/stores/review-store";
 
 interface User {
   id: string;
@@ -12,13 +12,29 @@ interface User {
   avatar?: string;
 }
 
-interface Review extends BackendReview {
+interface Review {
+  id: string;
+  content: string;
+  userId: string;
   user?: User;
-  commentCount?: number;
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+  upvotes: number;
+  downvotes: number;
+  commentCount: number;
+  repoId: string;
 }
 
-interface Comment extends BackendComment {
+interface Comment {
+  id: string;
+  content: string;
+  userId: string;
   user?: User;
+  createdAt: string;
+  updatedAt: string;
+  upvotes: number;
+  downvotes: number;
 }
 
 interface ApiIntegratedReviewComponentProps {
@@ -28,145 +44,39 @@ interface ApiIntegratedReviewComponentProps {
 export default function ReviewComponent({
   repoId,
 }: ApiIntegratedReviewComponentProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [expandedReviews, setExpandedReviews] = useState<string[]>([]);
-  const [comments, setComments] = useState<{ [key: string]: Comment[] }>({});
-  const [loadingComments, setLoadingComments] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const API_BASE_URL = `${window?.ENV?.BACKEND_URL}/api/v1`;
+  const {
+    reviews,
+    expandedReviews,
+    comments,
+    loadingComments,
+    fetchReviews,
+    toggleExpand,
+    fetchComments,
+    loadMoreComments,
+    handleVote,
+    handleCommentVote,
+    addReview,
+    addComment,
+  } = useReviewStore();
 
   useEffect(() => {
-    if (!repoId) return;
-    if (!window) return;
-    fetchReviews();
-  }, [repoId]);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/reviews?repoId=${repoId}`);
-      if (!response.ok) throw new Error("Failed to fetch reviews");
-      const data: Review[] = await response.json();
-      setReviews(data);
-    } catch (error) {
-      console.error("Error fetching reviews:", error);
+    if (repoId) {
+      fetchReviews(repoId);
     }
-  };
+  }, [repoId, fetchReviews]);
 
-  const fetchComments = async (reviewId: string) => {
-    setLoadingComments((prev) => ({ ...prev, [reviewId]: true }));
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/comments?reviewId=${reviewId}`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch comments");
-      const data: Comment[] = await response.json();
-      setComments((prev) => ({ ...prev, [reviewId]: data }));
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-    } finally {
-      setLoadingComments((prev) => ({ ...prev, [reviewId]: false }));
-    }
-  };
-
-  const toggleExpand = async (reviewId: string) => {
-    if (expandedReviews.includes(reviewId)) {
-      setExpandedReviews((prev) => prev.filter((id) => id !== reviewId));
-    } else {
-      setExpandedReviews((prev) => [...prev, reviewId]);
-      if (!comments[reviewId]) {
-        await fetchComments(reviewId);
-      }
-    }
-  };
-
-  const handleVote = async (
-    reviewId: string,
-    voteType: "upvote" | "downvote",
-  ) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/reviews/${reviewId}/${voteType}`,
-        {
-          method: "POST",
-        },
-      );
-      if (!response.ok) throw new Error(`Failed to ${voteType} review`);
-      await fetchReviews();
-    } catch (error) {
-      console.error(`Error ${voteType}ing review:`, error);
-    }
-  };
-
-  const handleCommentVote = async (
-    commentId: string,
-    voteType: "upvote" | "downvote",
-  ) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/comments/${commentId}/${voteType}`,
-        {
-          method: "POST",
-        },
-      );
-      if (!response.ok) throw new Error(`Failed to ${voteType} comment`);
-      const reviewId = reviews.find((review) =>
-        comments[review.id]?.some((comment) => comment.id === commentId),
-      )?.id;
-      if (reviewId) await fetchComments(reviewId);
-    } catch (error) {
-      console.error(`Error ${voteType}ing comment:`, error);
-    }
-  };
-
-  const addReview = async (
-    newReviewData: Omit<
-      BackendReview,
-      | "id"
-      | "userId"
-      | "repoId"
-      | "createdAt"
-      | "updatedAt"
-      | "deletedAt"
-      | "flag"
-      | "upvotes"
-      | "downvotes"
-    >,
-  ) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/reviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...newReviewData, repoId }),
-      });
-      if (!response.ok) throw new Error("Failed to add review");
-      await fetchReviews();
-    } catch (error) {
-      console.error("Error adding review:", error);
-    }
-  };
-
-  const addComment = async (reviewId: string, commentContent: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content: commentContent, reviewId }),
-      });
-      if (!response.ok) throw new Error("Failed to add comment");
-      await fetchComments(reviewId);
-    } catch (error) {
-      console.error("Error adding comment:", error);
+  const handleExpandToggle = async (reviewId: string) => {
+    toggleExpand(reviewId);
+    if (!expandedReviews.includes(reviewId) && !comments[reviewId]) {
+      await fetchComments(repoId, reviewId);
     }
   };
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 lg:px-8">
-      <AddReviewForm onSubmit={addReview} />
+      <AddReviewForm
+        onSubmit={(newReviewData) => addReview(repoId, newReviewData)}
+      />
       <Separator className="my-8" />
       <div className="grid gap-8">
         {reviews.map((review) => (
@@ -226,7 +136,7 @@ export default function ReviewComponent({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleExpand(review.id)}
+                        onClick={() => handleExpandToggle(review.id)}
                         className="flex items-center gap-1"
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -236,7 +146,7 @@ export default function ReviewComponent({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleExpand(review.id)}
+                        onClick={() => handleExpandToggle(review.id)}
                       >
                         {expandedReviews.includes(review.id)
                           ? "Read Less"
@@ -252,15 +162,31 @@ export default function ReviewComponent({
                     <p>Loading comments...</p>
                   ) : (
                     <>
-                      {comments[review.id]?.map((comment) => (
+                      {comments[review.id]?.data.map((comment) => (
                         <CommentComponent
                           key={comment.id}
                           comment={comment}
-                          onVote={handleCommentVote}
+                          onVote={(commentId, voteType) =>
+                            handleCommentVote(repoId, commentId, voteType)
+                          }
                         />
                       ))}
+                      {comments[review.id] &&
+                        comments[review.id].meta.page <
+                          comments[review.id].meta.lastPage && (
+                          <Button
+                            onClick={() => loadMoreComments(repoId, review.id)}
+                            disabled={loadingComments[review.id]}
+                          >
+                            {loadingComments[review.id]
+                              ? "Loading..."
+                              : "Load More Comments"}
+                          </Button>
+                        )}
                       <AddCommentForm
-                        onSubmit={(content) => addComment(review.id, content)}
+                        onSubmit={(content) =>
+                          addComment(repoId, review.id, content)
+                        }
                       />
                     </>
                   )}
@@ -318,7 +244,7 @@ const CommentComponent: React.FC<CommentComponentProps> = ({
       <AvatarFallback>
         {comment.user?.name
           ?.split(" ")
-          .map((n) => n[0])
+          .map((n: string) => n[0])
           .join("") || "U"}
       </AvatarFallback>
     </Avatar>
@@ -383,16 +309,15 @@ const AddCommentForm: React.FC<AddCommentFormProps> = ({ onSubmit }) => {
 interface AddReviewFormProps {
   onSubmit: (
     review: Omit<
-      BackendReview,
+      Review,
       | "id"
       | "userId"
-      | "repoId"
       | "createdAt"
       | "updatedAt"
-      | "deletedAt"
-      | "flag"
       | "upvotes"
       | "downvotes"
+      | "commentCount"
+      | "repoId"
     >,
   ) => void;
 }
