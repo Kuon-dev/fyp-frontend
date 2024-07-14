@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,16 +48,22 @@ export default function ReviewComponent({
     reviews,
     expandedReviews,
     comments,
+    loadingReviews,
     loadingComments,
     fetchReviews,
     toggleExpand,
     fetchComments,
+    loadMoreReviews,
     loadMoreComments,
     handleVote,
     handleCommentVote,
     addReview,
     addComment,
   } = useReviewStore();
+
+  const [lastReviewRef, setLastReviewRef] = useState<HTMLDivElement | null>(
+    null,
+  );
 
   useEffect(() => {
     if (repoId) {
@@ -72,6 +78,31 @@ export default function ReviewComponent({
     }
   };
 
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastReviewCallback = useCallback(
+    (node: HTMLDivElement) => {
+      if (loadingReviews) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (
+          entries[0].isIntersecting &&
+          reviews.meta.page < reviews.meta.lastPage
+        ) {
+          loadMoreReviews(repoId);
+        }
+      });
+      if (node) observer.current.observe(node);
+      setLastReviewRef(node);
+    },
+    [
+      loadingReviews,
+      reviews.meta.page,
+      reviews.meta.lastPage,
+      loadMoreReviews,
+      repoId,
+    ],
+  );
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 lg:px-8">
       <AddReviewForm
@@ -79,9 +110,14 @@ export default function ReviewComponent({
       />
       <Separator className="my-8" />
       <div className="grid gap-8">
-        {reviews.map((review) => (
+        {reviews.data.map((review, index) => (
           <React.Fragment key={review.id}>
-            <div className="grid gap-4">
+            <div
+              className="grid gap-4"
+              ref={
+                index === reviews.data.length - 1 ? lastReviewCallback : null
+              }
+            >
               <div className="flex items-start gap-4">
                 <Avatar className="w-10 h-10 border">
                   <AvatarImage
@@ -197,6 +233,7 @@ export default function ReviewComponent({
           </React.Fragment>
         ))}
       </div>
+      {loadingReviews && <p>Loading more reviews...</p>}
     </div>
   );
 }

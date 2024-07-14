@@ -20,11 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { ClientOnly } from "remix-utils/client-only";
-import { getRepoById } from "@/lib/fetcher/repo";
 import { LoaderFunction } from "@remix-run/node";
 import type { RepoResponse } from "@/lib/fetcher/repo";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import ReviewComponent from "@/components/repo/review";
 
 export const loader: LoaderFunction = async ({ params }) => {

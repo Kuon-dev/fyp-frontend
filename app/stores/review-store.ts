@@ -16,14 +16,21 @@ interface Comment extends BackendComment {
   user?: User;
 }
 
+interface Pagination {
+  total: number;
+  page: number;
+  perPage: number;
+  lastPage: number;
+}
+
+interface ReviewsPagination {
+  data: Review[];
+  meta: Pagination;
+}
+
 interface CommentsPagination {
   data: Comment[];
-  meta: {
-    total: number;
-    page: number;
-    perPage: number;
-    lastPage: number;
-  };
+  meta: Pagination;
 }
 
 const getApiBaseUrl = () => {
@@ -35,23 +42,26 @@ const getApiBaseUrl = () => {
 };
 
 interface ReviewStore {
-  reviews: Review[];
+  reviews: ReviewsPagination;
   expandedReviews: string[];
   comments: { [key: string]: CommentsPagination };
+  loadingReviews: boolean;
   loadingComments: { [key: string]: boolean };
   API_BASE_URL: string;
 
-  setReviews: (reviews: Review[]) => void;
+  setReviews: (reviews: ReviewsPagination) => void;
   toggleExpand: (reviewId: string) => void;
   setComments: (reviewId: string, comments: CommentsPagination) => void;
+  setLoadingReviews: (loading: boolean) => void;
   setLoadingComments: (reviewId: string, loading: boolean) => void;
 
-  fetchReviews: (repoId: string) => Promise<void>;
+  fetchReviews: (repoId: string, page?: number) => Promise<void>;
   fetchComments: (
     repoId: string,
     reviewId: string,
     page?: number,
   ) => Promise<void>;
+  loadMoreReviews: (repoId: string) => Promise<void>;
   loadMoreComments: (repoId: string, reviewId: string) => Promise<void>;
   handleVote: (
     reviewId: string,
@@ -86,9 +96,13 @@ interface ReviewStore {
 
 const useReviewStore = create<ReviewStore>()(
   devtools((set, get) => ({
-    reviews: [],
+    reviews: {
+      data: [],
+      meta: { total: 0, page: 1, perPage: 10, lastPage: 1 },
+    },
     expandedReviews: [],
     comments: {},
+    loadingReviews: false,
     loadingComments: {},
     API_BASE_URL: getApiBaseUrl(),
 
@@ -114,21 +128,33 @@ const useReviewStore = create<ReviewStore>()(
             : comments,
         },
       })),
+    setLoadingReviews: (loading) => set({ loadingReviews: loading }),
     setLoadingComments: (reviewId, loading) =>
       set((state) => ({
         loadingComments: { ...state.loadingComments, [reviewId]: loading },
       })),
 
-    fetchReviews: async (repoId) => {
+    fetchReviews: async (repoId, page = 1) => {
+      get().setLoadingReviews(true);
       try {
         const response = await fetch(
-          `${get().API_BASE_URL}/reviews?repoId=${repoId}`,
+          `${get().API_BASE_URL}/repo/${repoId}/reviews?page=${page}&perPage=10`,
         );
         if (!response.ok) throw new Error("Failed to fetch reviews");
-        const data: Review[] = await response.json();
-        set({ reviews: data });
+        const data: ReviewsPagination = await response.json();
+        set((state) => ({
+          reviews:
+            page === 1
+              ? data
+              : {
+                  ...data,
+                  data: [...state.reviews.data, ...data.data],
+                },
+        }));
       } catch (error) {
         console.error("Error fetching reviews:", error);
+      } finally {
+        get().setLoadingReviews(false);
       }
     },
 
@@ -148,6 +174,14 @@ const useReviewStore = create<ReviewStore>()(
       }
     },
 
+    loadMoreReviews: async (repoId) => {
+      const currentPage = get().reviews.meta.page;
+      const nextPage = currentPage + 1;
+      if (nextPage <= get().reviews.meta.lastPage) {
+        await get().fetchReviews(repoId, nextPage);
+      }
+    },
+
     loadMoreComments: async (repoId, reviewId) => {
       const currentPage = get().comments[reviewId]?.meta.page || 0;
       const nextPage = currentPage + 1;
@@ -162,7 +196,7 @@ const useReviewStore = create<ReviewStore>()(
         );
         if (!response.ok) throw new Error(`Failed to ${voteType} review`);
         // Refresh reviews after voting
-        await get().fetchReviews(get().reviews[0].repoId);
+        await get().fetchReviews(get().reviews.data[0].repoId);
       } catch (error) {
         console.error(`Error ${voteType}ing review:`, error);
       }

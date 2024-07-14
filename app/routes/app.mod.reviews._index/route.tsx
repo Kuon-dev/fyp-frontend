@@ -16,7 +16,7 @@ export const ErrorBoundary = () => {
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   if (!checkAuthCookie(request)) return redirect("/login");
-  const res = await fetch(`${process.env.BACKEND_URL}/api/v1/reviews`, {
+  const res = await fetch(`${process.env.BACKEND_URL}/api/v1/admin/reviews`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
