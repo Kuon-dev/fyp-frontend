@@ -117,15 +117,13 @@ const useReviewStore = create<ReviewStore>()(
       set((state) => ({
         comments: {
           ...state.comments,
-          [reviewId]: state.comments[reviewId]
-            ? {
-                ...comments,
-                data: [
-                  ...(state.comments[reviewId].data || []),
-                  ...comments.data,
-                ],
-              }
-            : comments,
+          [reviewId]: {
+            ...comments,
+            data:
+              comments.meta.page === 1
+                ? comments.data
+                : [...(state.comments[reviewId]?.data || []), ...comments.data],
+          },
         },
       })),
     setLoadingReviews: (loading) => set({ loadingReviews: loading }),
@@ -139,6 +137,7 @@ const useReviewStore = create<ReviewStore>()(
       try {
         const response = await fetch(
           `${get().API_BASE_URL}/repo/${repoId}/reviews?page=${page}&perPage=10`,
+          { credentials: "include" },
         );
         if (!response.ok) throw new Error("Failed to fetch reviews");
         const data: ReviewsPagination = await response.json();
@@ -163,6 +162,7 @@ const useReviewStore = create<ReviewStore>()(
       try {
         const response = await fetch(
           `${get().API_BASE_URL}/repo/${repoId}/reviews/${reviewId}?page=${page}&perPage=10`,
+          { credentials: "include" },
         );
         if (!response.ok) throw new Error("Failed to fetch comments");
         const data: CommentsPagination = await response.json();
@@ -192,7 +192,7 @@ const useReviewStore = create<ReviewStore>()(
       try {
         const response = await fetch(
           `${get().API_BASE_URL}/reviews/${reviewId}/${voteType}`,
-          { method: "POST" },
+          { method: "POST", credentials: "include" },
         );
         if (!response.ok) throw new Error(`Failed to ${voteType} review`);
         // Refresh reviews after voting
@@ -206,7 +206,7 @@ const useReviewStore = create<ReviewStore>()(
       try {
         const response = await fetch(
           `${get().API_BASE_URL}/comments/${commentId}/${voteType}`,
-          { method: "POST" },
+          { method: "POST", credentials: "include" },
         );
         if (!response.ok) throw new Error(`Failed to ${voteType} comment`);
         // Find the review that contains this comment and refresh its comments
@@ -227,6 +227,7 @@ const useReviewStore = create<ReviewStore>()(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...newReviewData, repoId }),
+          credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to add review");
         await get().fetchReviews(repoId);
@@ -241,9 +242,11 @@ const useReviewStore = create<ReviewStore>()(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: commentContent, reviewId }),
+          credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to add comment");
-        await get().fetchComments(repoId, reviewId);
+        // Fetch only the first page of comments after adding a new one
+        await get().fetchComments(repoId, reviewId, 1);
       } catch (error) {
         console.error("Error adding comment:", error);
       }

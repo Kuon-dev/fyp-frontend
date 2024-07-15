@@ -33,10 +33,8 @@ import { Spinner } from "@/components/custom/spinner";
 import { ClientOnly } from "remix-utils/client-only";
 import { Link, useParams } from "@remix-run/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 import debounce from "lodash/debounce";
 
-// Reusable function to set up LSP for JSX and TSX
 const setupLanguageService = async (monaco: Monaco) => {
   const compilerOptions = {
     allowJs: true,
@@ -99,11 +97,11 @@ const setupLanguageService = async (monaco: Monaco) => {
 export default function EditorLayout() {
   const { id } = useParams();
   const [isSaving, setIsSaving] = useState(false);
-  const [editorOptions] = useMonacoStore((state) => [state.editorOptions]);
+  const { editorOptions } = useMonacoStore();
 
   const handleSave = async () => {
     if (!id) {
-      toast.error("no repo id found");
+      toast.error("No repo id found");
       return;
     }
 
@@ -132,8 +130,7 @@ export default function EditorLayout() {
         throw new Error("Failed to save changes");
       }
 
-      //const result = await response.json();
-      toast.success("Changes saves successfully");
+      toast.success("Changes saved successfully");
     } catch (error) {
       console.error("Error saving changes:", error);
       toast.error("Failed to save changes. Please try again.");
@@ -141,6 +138,7 @@ export default function EditorLayout() {
       setIsSaving(false);
     }
   };
+
   return (
     <Layout>
       <Tabs defaultValue="main" className="">
@@ -171,28 +169,20 @@ export default function EditorLayout() {
 
 function CodeRepoEditorPreview() {
   const { id } = useParams();
-  const [
+  const {
     editorValue,
-    handleEditorChange,
     cssValue,
-    handleCssChange,
     editorOptions,
-  ] = useMonacoStore((state) => [
-    state.editorValue,
-    state.handleEditorChange,
-    state.cssValue,
-    state.handleCssChange,
-    state.editorOptions,
-  ]);
+    handleEditorChange,
+    resetEditorContent,
+  } = useMonacoStore();
   const [renderValue, setRenderValue] = useState(editorValue);
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
 
   useEffect(() => {
-    // Remove react import statements
     const importRegex = /^import\s.+?;?\s*$/gm;
     const value = editorValue.replace(importRegex, "").trim();
-    // Add import css back
     setRenderValue(`
       injectCSS(cssValue);
       ${value}
@@ -200,25 +190,16 @@ function CodeRepoEditorPreview() {
   }, [editorValue, cssValue]);
 
   const debouncedHandleEditorChange = useCallback(
-    debounce((value: string) => {
-      handleEditorChange(value);
-      // Save to localStorage
+    debounce((value: string, language: "javascript" | "typescript" | "css") => {
+      handleEditorChange(value, language);
       if (id) {
-        localStorage.setItem(`repo_${id}`, value);
+        localStorage.setItem(
+          `repo_${id}${language === "css" ? "_css" : ""}`,
+          value,
+        );
       }
     }, 500),
     [handleEditorChange, id],
-  );
-
-  const debouncedHandleCssChange = useCallback(
-    debounce((value: string) => {
-      handleCssChange(value);
-      // Save to localStorage
-      if (id) {
-        localStorage.setItem(`repo_${id}_css`, value);
-      }
-    }, 500),
-    [handleCssChange, id],
   );
 
   useEffect(() => {
@@ -226,21 +207,18 @@ function CodeRepoEditorPreview() {
       const monaco = monacoRef.current;
       const editor = editorRef.current;
 
-      // Check if the model for this language already exists
       const uri = monaco.Uri.file(
         editorOptions.language === "javascript" ? "index.jsx" : "index.tsx",
       );
       let model = monaco.editor.getModel(uri);
 
       if (!model) {
-        // If the model doesn't exist, create a new one
         model = monaco.editor.createModel(
           editor.getValue(),
           editorOptions.language,
           uri,
         );
       } else {
-        // If the model exists, just update its language
         monaco.editor.setModelLanguage(model, editorOptions.language);
       }
 
@@ -249,13 +227,10 @@ function CodeRepoEditorPreview() {
   }, [editorOptions.language]);
 
   const handleEditorBeforeMount = async (monaco: Monaco) => {
-    const highlighter = await getHighlighter({
+    await getHighlighter({
       themes: ["vitesse-dark", "vitesse-light"],
       langs: ["typescript", "javascript"],
     });
-    console.log(highlighter);
-
-    // Set up language services for both JavaScript and TypeScript
     await setupLanguageService(monaco);
   };
 
@@ -275,7 +250,6 @@ function CodeRepoEditorPreview() {
     }
     editor.setModel(model);
 
-    // Load from localStorage if available
     if (id) {
       const savedCode = localStorage.getItem(`repo_${id}`);
       if (savedCode) {
@@ -292,7 +266,6 @@ function CodeRepoEditorPreview() {
     }
     editor.setModel(model);
 
-    // Load from localStorage if available
     if (id) {
       const savedCss = localStorage.getItem(`repo_${id}_css`);
       if (savedCss) {
@@ -301,7 +274,6 @@ function CodeRepoEditorPreview() {
     }
   };
 
-  // Mock submit function
   const handleSubmit = useCallback(
     debounce(() => {
       if (id) {
@@ -309,14 +281,12 @@ function CodeRepoEditorPreview() {
         const css = localStorage.getItem(`repo_${id}_css`);
         console.log("Submitting code:", code);
         console.log("Submitting CSS:", css);
-        // Here you would typically send this data to your backend
       }
     }, 1000),
     [id],
   );
 
   useEffect(() => {
-    // Set up interval to call handleSubmit every 5 minutes
     const interval = setInterval(handleSubmit, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [handleSubmit]);
@@ -343,12 +313,17 @@ function CodeRepoEditorPreview() {
                       value={editorValue}
                       beforeMount={handleEditorBeforeMount}
                       onChange={(value) =>
-                        debouncedHandleEditorChange(value ?? "")
+                        debouncedHandleEditorChange(
+                          value ?? "",
+                          editorOptions.language,
+                        )
                       }
                       theme={editorOptions.theme}
                       options={{
                         fontSize: editorOptions.fontSize,
                         wordWrap: editorOptions.wordWrap,
+                        minimap: editorOptions.minimap,
+                        lineNumbers: editorOptions.lineNumbers,
                       }}
                       onMount={handleEditorDidMount}
                     />
@@ -360,12 +335,14 @@ function CodeRepoEditorPreview() {
                       value={cssValue}
                       beforeMount={handleEditorBeforeMount}
                       onChange={(value) =>
-                        debouncedHandleCssChange(value ?? "")
+                        debouncedHandleEditorChange(value ?? "", "css")
                       }
                       theme={editorOptions.theme}
                       options={{
                         fontSize: editorOptions.fontSize,
                         wordWrap: editorOptions.wordWrap,
+                        minimap: editorOptions.minimap,
+                        lineNumbers: editorOptions.lineNumbers,
                       }}
                       onMount={handleEditorCssDidMount}
                     />
@@ -398,22 +375,13 @@ function MonacoLoading() {
 }
 
 export function EditorMenubar() {
-  const [editorOptions, setEditorOptions] = useMonacoStore((state) => [
-    state.editorOptions,
-    state.setEditorOptions,
-  ]);
-
-  const handleChangeTheme = (theme: string) => {
-    setEditorOptions({ theme });
-  };
-
-  const handleChangeFontSize = (fontSize: number) => {
-    setEditorOptions({ fontSize });
-  };
-
-  const handleChangeLanguage = (language: "javascript" | "typescript") => {
-    setEditorOptions({ language });
-  };
+  const {
+    editorOptions,
+    setEditorOptions,
+    toggleMinimap,
+    increaseFontSize,
+    decreaseFontSize,
+  } = useMonacoStore();
 
   return (
     <Menubar>
@@ -423,29 +391,33 @@ export function EditorMenubar() {
           <MenubarSub>
             <MenubarSubTrigger>Themes</MenubarSubTrigger>
             <MenubarSubContent>
-              <MenubarItem onClick={() => handleChangeTheme("vs-dark")}>
+              <MenubarItem
+                onClick={() => setEditorOptions({ theme: "vs-dark" })}
+              >
                 Dark Theme
               </MenubarItem>
-              <MenubarItem onClick={() => handleChangeTheme("vs-light")}>
+              <MenubarItem
+                onClick={() => setEditorOptions({ theme: "vs-light" })}
+              >
                 Light Theme
               </MenubarItem>
-              <MenubarItem onClick={() => handleChangeTheme("hc-black")}>
+              <MenubarItem
+                onClick={() => setEditorOptions({ theme: "hc-black" })}
+              >
                 High Contrast Black
               </MenubarItem>
             </MenubarSubContent>
           </MenubarSub>
           <MenubarSeparator />
           <MenubarSub>
-            <MenubarSubTrigger>Font Sizes</MenubarSubTrigger>
+            <MenubarSubTrigger>Font Size</MenubarSubTrigger>
             <MenubarSubContent>
-              {[12, 14, 16, 18, 20, 22].map((size) => (
-                <MenubarItem
-                  key={size}
-                  onClick={() => handleChangeFontSize(size)}
-                >
-                  {size}
-                </MenubarItem>
-              ))}
+              <MenubarItem onClick={increaseFontSize}>
+                Increase Font Size
+              </MenubarItem>
+              <MenubarItem onClick={decreaseFontSize}>
+                Decrease Font Size
+              </MenubarItem>
             </MenubarSubContent>
           </MenubarSub>
           <MenubarSeparator />
@@ -459,14 +431,22 @@ export function EditorMenubar() {
           <MenubarSub>
             <MenubarSubTrigger>Language</MenubarSubTrigger>
             <MenubarSubContent>
-              <MenubarItem onClick={() => handleChangeLanguage("typescript")}>
+              <MenubarItem
+                onClick={() => setEditorOptions({ language: "typescript" })}
+              >
                 TSX
               </MenubarItem>
-              <MenubarItem onClick={() => handleChangeLanguage("javascript")}>
+              <MenubarItem
+                onClick={() => setEditorOptions({ language: "javascript" })}
+              >
                 JSX
               </MenubarItem>
             </MenubarSubContent>
           </MenubarSub>
+          <MenubarSeparator />
+          <MenubarItem onClick={toggleMinimap}>
+            {editorOptions.minimap.enabled ? "Disable" : "Enable"} Minimap
+          </MenubarItem>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>

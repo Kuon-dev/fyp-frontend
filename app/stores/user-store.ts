@@ -3,11 +3,33 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { toast } from "sonner";
 
-export type Me = {
-  user: Omit<BackendUser, "passwordHash">;
-  profile: BackendProfile;
-  sellerProfile: BackendSellerProfile | null;
-};
+// Define the types based on the expected JSON response
+type Role = "ADMIN" | "MODERATOR" | "SELLER" | "USER";
+
+interface MeUser {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  bannedUntil: string | null;
+  role: Role;
+}
+
+interface MeProfile {
+  id: string;
+  profileImg: string | null;
+  name: string | null;
+  phoneNumber: string | null;
+  userId: string;
+}
+
+interface Me {
+  user: MeUser;
+  profile: MeProfile;
+  sellerProfile: BackendSellerProfile;
+}
 
 interface UserStoreState {
   user: Me | null;
@@ -35,20 +57,18 @@ export const useUserStore = create<UserStoreState>()(
           });
           if (response.ok) {
             if (response.status === 204) {
-              toast("session expired, please login again", {
+              toast("Session expired, please login again", {
                 action: {
-                  label: "Undo",
+                  label: "Login",
                   onClick: () => {
                     window.location.href = "/login";
                   },
                 },
               });
-            }
-            const userData: Me | null = await response?.json();
-            if (!userData) {
               setUser(null);
               return false;
             }
+            const userData: Me = await response.json();
             setUser(userData);
             return true;
           } else {

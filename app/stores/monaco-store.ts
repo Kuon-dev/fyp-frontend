@@ -1,43 +1,101 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   DEFAULT_REACT_MONACO,
   DEFAULT_CSS_MONACO,
 } from "@/integrations/monaco/constants";
 
-export type MonacoStoreType = {
+export type EditorLanguage = "javascript" | "typescript" | "css";
+export type EditorTheme = "vs-dark" | "vs-light" | "hc-black";
+export type WordWrapSetting = "on" | "off" | "wordWrapColumn" | "bounded";
+
+interface EditorOptions {
+  theme: EditorTheme;
+  fontSize: number;
+  language: EditorLanguage;
+  wordWrap: WordWrapSetting;
+  minimap: { enabled: boolean };
+  lineNumbers: "on" | "off" | "relative";
+}
+
+export interface MonacoStoreType {
   editorValue: string;
-  handleEditorChange: (value: string) => void;
   cssValue: string;
-  handleCssChange: (value: string) => void;
-  editorOptions: {
-    theme: string;
-    fontSize: number;
-    language: "javascript" | "typescript";
-    wordWrap: "on" | "off";
-  };
-  setEditorOptions: (
-    options: Partial<{
-      theme: string;
-      fontSize: number;
-      wordWrap: "on" | "off";
-      language: "javascript" | "typescript";
-    }>,
-  ) => void;
+  editorOptions: EditorOptions;
+  handleEditorChange: (value: string, language: EditorLanguage) => void;
+  setEditorOptions: (options: Partial<EditorOptions>) => void;
+  resetEditorContent: (language: EditorLanguage) => void;
+  toggleMinimap: () => void;
+  increaseFontSize: () => void;
+  decreaseFontSize: () => void;
+}
+
+const DEFAULT_EDITOR_OPTIONS: EditorOptions = {
+  theme: "vs-dark",
+  fontSize: 14,
+  language: "typescript",
+  wordWrap: "on",
+  minimap: { enabled: true },
+  lineNumbers: "on",
 };
 
-export const useMonacoStore = create<MonacoStoreType>((set) => ({
-  editorValue: DEFAULT_REACT_MONACO,
-  handleEditorChange: (value: string) => set({ editorValue: value }),
-  editorOptions: {
-    theme: "vs-dark",
-    fontSize: 14,
-    language: "typescript",
-    wordWrap: "on",
-  },
-  cssValue: DEFAULT_CSS_MONACO,
-  handleCssChange: (value: string) => set({ cssValue: value }),
-  setEditorOptions: (options) =>
-    set((state) => ({
-      editorOptions: { ...state.editorOptions, ...options },
-    })),
-}));
+export const useMonacoStore = create<MonacoStoreType>()(
+  persist(
+    (set) => ({
+      editorValue: DEFAULT_REACT_MONACO,
+      cssValue: DEFAULT_CSS_MONACO,
+      editorOptions: DEFAULT_EDITOR_OPTIONS,
+
+      handleEditorChange: (value: string, language: EditorLanguage) =>
+        set((state) => {
+          if (language === "css") {
+            return { cssValue: value };
+          }
+          return { editorValue: value };
+        }),
+
+      setEditorOptions: (options: Partial<EditorOptions>) =>
+        set((state) => ({
+          editorOptions: { ...state.editorOptions, ...options },
+        })),
+
+      resetEditorContent: (language: EditorLanguage) =>
+        set((state) => {
+          if (language === "css") {
+            return { cssValue: DEFAULT_CSS_MONACO };
+          }
+          return { editorValue: DEFAULT_REACT_MONACO };
+        }),
+
+      toggleMinimap: () =>
+        set((state) => ({
+          editorOptions: {
+            ...state.editorOptions,
+            minimap: { enabled: !state.editorOptions.minimap.enabled },
+          },
+        })),
+
+      increaseFontSize: () =>
+        set((state) => ({
+          editorOptions: {
+            ...state.editorOptions,
+            fontSize: state.editorOptions.fontSize + 1,
+          },
+        })),
+
+      decreaseFontSize: () =>
+        set((state) => ({
+          editorOptions: {
+            ...state.editorOptions,
+            fontSize: Math.max(8, state.editorOptions.fontSize - 1), // Prevent font size from going below 8
+          },
+        })),
+    }),
+    {
+      name: "monaco-store",
+      partialize: (state) => ({
+        editorOptions: state.editorOptions,
+      }),
+    },
+  ),
+);

@@ -78,6 +78,12 @@ export default function ReviewComponent({
     }
   };
 
+  const handleAddComment = async (reviewId: string, content: string) => {
+    await addComment(repoId, reviewId, content);
+    // After adding a comment, we don't need to do anything else
+    // The store will fetch the first page of comments automatically
+  };
+
   const observer = useRef<IntersectionObserver | null>(null);
   const lastReviewCallback = useCallback(
     (node: HTMLDivElement) => {
@@ -221,7 +227,7 @@ export default function ReviewComponent({
                         )}
                       <AddCommentForm
                         onSubmit={(content) =>
-                          addComment(repoId, review.id, content)
+                          handleAddComment(review.id, content)
                         }
                       />
                     </>
