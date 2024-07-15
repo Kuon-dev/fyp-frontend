@@ -65,7 +65,7 @@ export default function Navbar() {
         <div className="ml-auto flex items-center gap-2">
           {user ? (
             <Button variant="outline">
-              <Link to="/dashboard">Dashboard</Link>
+              <Link to="/app">Dashboard</Link>
             </Button>
           ) : (
             <>

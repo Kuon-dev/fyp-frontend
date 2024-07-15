@@ -1,77 +1,61 @@
 import React from "react";
-import {
-  // Link,
-  Outlet,
-  // json,
-  redirect,
-  // useNavigate,
-} from "@remix-run/react";
-import DashboardSidebar, { LinkProps } from "@/components/dashboard/sidebar";
-import { Layout, LayoutHeader, LayoutBody } from "@/components/custom/layout";
-import {
-  adminSidebarLinks,
-  moderatorSidebarLinks,
-  sellerSidebarLinks,
-  buyerSidebarLinks,
-} from "@/components/dashboard/constants";
-import { Settings } from "lucide-react";
+import { Outlet, redirect, useLoaderData } from "@remix-run/react";
+import { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { ClientOnly } from "remix-utils/client-only";
+import DashboardSidebar from "@/components/dashboard/sidebar";
+import { Layout, LayoutBody } from "@/components/custom/layout";
 import VerifyEmailComponent from "@/components/dashboard/verify-email";
 import { useUserStore } from "@/stores/user-store";
-import { LoaderFunction } from "@remix-run/node";
-import { ClientOnly } from "remix-utils/client-only";
+import {
+  sidebarLinks,
+  settingsLink,
+  SidebarLink,
+} from "@/components/dashboard/constants";
+import { sendVerifyEmailCodeFromUser } from "@/lib/fetcher/user";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const authCookie = cookieHeader
     ?.split(";")
-    .find((cookie) => cookie.includes("auth_session"));
+    .find((cookie) => cookie.includes("auth_token"));
   if (!authCookie) throw redirect("/login", 401);
+  return null;
+};
 
-  return "";
+export const action: ActionFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie") ?? "";
+  await sendVerifyEmailCodeFromUser(cookieHeader);
+  return redirect("/app");
 };
 
 export default function DashboardLayout() {
-  const [sidebarLinks, setSidebarLinks] = React.useState<LinkProps[]>([]);
   const [user] = useUserStore((state) => [state.user]);
+  const [currentSidebarLinks, setCurrentSidebarLinks] = React.useState<
+    SidebarLink[]
+  >([]);
+
   React.useEffect(() => {
-    switch (user?.user?.role) {
-      case "admin":
-        setSidebarLinks(adminSidebarLinks);
-        break;
-      case "moderator":
-        setSidebarLinks(moderatorSidebarLinks);
-        break;
-      case "seller":
-        setSidebarLinks(sellerSidebarLinks);
-        break;
-      case "buyer":
-        setSidebarLinks(buyerSidebarLinks);
-        break;
-      default:
-        setSidebarLinks(buyerSidebarLinks);
+    if (user?.user?.role) {
+      setCurrentSidebarLinks(
+        sidebarLinks[user.user.role.toLowerCase()] || sidebarLinks.buyer,
+      );
     }
   }, [user]);
 
-  const settingsLink: LinkProps = {
-    to: "/settings/profile",
-    icon: <Settings className="h-5 w-5" />,
-    tooltip: "Settings",
-  };
-
   return (
-    <div>
+    <div className="flex">
       <DashboardSidebar
-        sidebarLinks={sidebarLinks}
+        sidebarLinks={currentSidebarLinks}
         settingsLink={settingsLink}
       />
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <Layout className="flex min-h-screen w-full flex-col relative">
+      <div className="flex-1 sm:pl-14">
+        <Layout className="min-h-screen w-full flex flex-col">
           <LayoutBody>
-            <main className="">
+            <main>
               <Outlet />
               <ClientOnly>
                 {() =>
-                  user?.user?.emailVerified ? <div /> : <VerifyEmailComponent />
+                  user?.user?.emailVerified ? null : <VerifyEmailComponent />
                 }
               </ClientOnly>
             </main>

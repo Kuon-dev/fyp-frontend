@@ -7,6 +7,7 @@ import { LoaderFunction, json, redirect } from "@remix-run/node";
 import { useLoaderData, useRouteError } from "@remix-run/react";
 import ErrorComponent from "@/components/error/500";
 import { checkAuthCookie } from "@/lib/router-guard";
+import { DataTableLoadingComponent } from "@/components/dashboard/loading";
 
 export const ErrorBoundary = () => {
   const error = useRouteError();
@@ -37,7 +38,7 @@ export default function FlaggedCommentsPage() {
   const comments = useLoaderData<typeof loader>();
   return (
     <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-      <ClientOnly fallback={<LoadingComponent />}>
+      <ClientOnly fallback={<DataTableLoadingComponent />}>
         {() => (
           <>
             <DataTable
@@ -49,24 +50,6 @@ export default function FlaggedCommentsPage() {
           </>
         )}
       </ClientOnly>
-    </div>
-  );
-}
-
-function LoadingComponent() {
-  return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <div className="flex flex-col items-center space-y-4">
-        <p className="text-gray-500 dark:text-gray-400">
-          Please wait while we are preparing the content
-        </p>
-        <div className="flex items-center space-x-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

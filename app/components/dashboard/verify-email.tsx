@@ -24,7 +24,7 @@ export default function VerifyEmailComponent() {
                   If you didn't receive the email, please check your spam folder
                   or click the button below to resend the verification email.
                 </p>
-                <form method="post" action="/dashboard">
+                <form method="post" action="/app">
                   <Button className="w-full" type="submit">
                     Resend Verification Email
                   </Button>

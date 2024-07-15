@@ -4,7 +4,9 @@ import { LoaderFunction, json, redirect } from "@remix-run/node";
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const token = url.searchParams.get("auth_session");
+  const token = url.searchParams.get("auth_session") ?? "";
+  const cookieHeader = request.headers.get("Cookie");
+  console.log(token);
 
   // const cookieHeader = request.headers.get("Cookie");
   try {
@@ -12,7 +14,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: token ?? "",
+        Cookie: cookieHeader ?? token,
       },
       body: JSON.stringify({
         code,
@@ -38,7 +40,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       },
     );
   }
-  return redirect("/dashboard", {
+  return redirect("/app", {
     headers: {
       "Set-Cookie": token ?? "",
     },

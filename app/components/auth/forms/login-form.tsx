@@ -80,7 +80,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
         // const json = await res.json();
 
         toast.success("Login successful!");
-        nav("/dashboard");
+        nav("/app");
         // redirect
       }
       setIsLoading(false);
