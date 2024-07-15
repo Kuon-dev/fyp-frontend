@@ -12,6 +12,7 @@ import {
   SidebarLink,
 } from "@/components/dashboard/constants";
 import { sendVerifyEmailCodeFromUser } from "@/lib/fetcher/user";
+import BannedBanner from "@/components/auth/banned";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -54,9 +55,17 @@ export default function DashboardLayout() {
             <main>
               <Outlet />
               <ClientOnly>
-                {() =>
-                  user?.user?.emailVerified ? null : <VerifyEmailComponent />
-                }
+                {() => (
+                  <React.Fragment>
+                    {user?.user && !user?.user?.emailVerified ? (
+                      <VerifyEmailComponent />
+                    ) : null}
+                    {user?.user && user?.user?.bannedUntil ? (
+                      <BannedBanner />
+                    ) : null}
+                    {!user}
+                  </React.Fragment>
+                )}
               </ClientOnly>
             </main>
           </LayoutBody>

@@ -98,7 +98,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         ></script>
         <ScrollRestoration />
         <ExternalScripts />
-        {user?.user?.bannedUntil && <BannedBanner />}
         {data?.showBanner && <CookieBanner />}
         <Scripts />
       </body>
