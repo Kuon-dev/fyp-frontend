@@ -2,9 +2,15 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { useNavigate } from "@remix-run/react";
 import { ClientOnly } from "remix-utils/client-only";
+import React from "react";
 
 export default function VerifyEmailComponent() {
   const nav = useNavigate();
+  const [isResending, setIsResending] = React.useState(false);
+
+  const handleResend = async () => {
+    setIsResending(true);
+  };
 
   return (
     <ClientOnly>
@@ -24,8 +30,12 @@ export default function VerifyEmailComponent() {
                   If you didn't receive the email, please check your spam folder
                   or click the button below to resend the verification email.
                 </p>
-                <form method="post" action="/app">
-                  <Button className="w-full" type="submit">
+                <form method="post" action="/app" onSubmit={handleResend}>
+                  <Button
+                    className="w-full"
+                    type="submit"
+                    disabled={isResending}
+                  >
                     Resend Verification Email
                   </Button>
                   <Button

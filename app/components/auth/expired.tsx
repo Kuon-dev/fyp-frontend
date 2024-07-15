@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "@remix-run/react";
 
-export default function Component() {
+export default function ExpiredBanner() {
   return (
     <AlertDialog defaultOpen>
       <AlertDialogContent className="sm:max-w-md">

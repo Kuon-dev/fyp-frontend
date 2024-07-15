@@ -13,13 +13,14 @@ import {
 } from "@/components/dashboard/constants";
 import { sendVerifyEmailCodeFromUser } from "@/lib/fetcher/user";
 import BannedBanner from "@/components/auth/banned";
+import ExpiredBanner from "@/components/auth/expired";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const authCookie = cookieHeader
     ?.split(";")
     .find((cookie) => cookie.includes("auth_token"));
-  if (!authCookie) throw redirect("/login", 401);
+  if (!authCookie) redirect("/login", 401);
   return null;
 };
 
@@ -30,7 +31,10 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function DashboardLayout() {
-  const [user] = useUserStore((state) => [state.user]);
+  const [user, isLoading] = useUserStore((state) => [
+    state.user,
+    state.isLoading,
+  ]);
   const [currentSidebarLinks, setCurrentSidebarLinks] = React.useState<
     SidebarLink[]
   >([]);
@@ -63,7 +67,7 @@ export default function DashboardLayout() {
                     {user?.user && user?.user?.bannedUntil ? (
                       <BannedBanner />
                     ) : null}
-                    {!user}
+                    {!user && !isLoading ? <ExpiredBanner /> : null}
                   </React.Fragment>
                 )}
               </ClientOnly>

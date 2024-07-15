@@ -10,6 +10,7 @@ import {
 import { Shell } from "@/components/landing/shell";
 import { useUserStore } from "@/stores/user-store";
 import PendingSellerComponent from "@/components/user/seller-pending";
+import { DataTableLoadingComponent } from "@/components/dashboard/loading";
 
 // Component for idle status
 const IdleSellerComponent: React.FC<{
@@ -127,17 +128,22 @@ const SellerDashboardComponent: React.FC = () => {
   };
 
   const renderContent = () => {
-    const status = user?.sellerProfile?.verificationStatus || "IDLE";
+    const status = user?.sellerProfile?.verificationStatus || "";
     switch (status) {
-      case "ACTIVE":
+      case "APPROVED":
         return <ActiveSellerComponent />;
       case "PENDING":
         return <PendingSellerComponent />;
       case "REJECTED":
         return <RejectedSellerComponent onSubmit={handleSubmit} />;
       case "IDLE":
-      default:
         return <IdleSellerComponent onSubmit={handleSubmit} />;
+      default:
+        return (
+          <div className="flex justify-center">
+            <DataTableLoadingComponent />
+          </div>
+        );
     }
   };
 

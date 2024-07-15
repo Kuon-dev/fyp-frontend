@@ -29,6 +29,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (!res.ok) throw new Error("Oh no! Something went wrong!");
 
   const data = await res.json();
+  console.log(data);
   return json({
     items: data,
     sucess: data.ok,

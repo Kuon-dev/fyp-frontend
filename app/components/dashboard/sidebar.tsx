@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientOnly } from "remix-utils/client-only";
+import { ExitIcon } from "@radix-ui/react-icons";
 
 // Define the LinkProps interface
 export interface LinkProps {
@@ -28,6 +29,20 @@ export default function DashboardSidebar({
   sidebarLinks,
   settingsLink,
 }: DashboardSidebarProps) {
+  const handleLogout = async () => {
+    const res = await fetch(`${window.ENV.BACKEND_URL}/api/v1/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.ok) {
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <ClientOnly
       fallback={
@@ -53,6 +68,17 @@ export default function DashboardSidebar({
               ))}
             </nav>
             <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleLogout}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground md:h-8 md:w-8"
+                  >
+                    <ExitIcon className="h-5 w-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Logout</TooltipContent>
+              </Tooltip>
               <SidebarLink {...settingsLink} />
             </nav>
           </aside>

@@ -4,13 +4,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/custom/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import type { ZodSchema } from "zod";
+import { DotsHorizontalIcon, FileIcon } from "@radix-ui/react-icons";
+//import type { ZodSchema } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +27,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { showErrorToast } from "@/lib/handle-error";
 import { toast } from "sonner";
@@ -28,11 +34,42 @@ import { Link } from "@remix-run/react";
 import React from "react";
 
 // User schema
+const bankAccountSchema = z.object({
+  id: z.string(),
+  sellerProfileId: z.string(),
+  accountHolderName: z.string(),
+  accountNumber: z.string(),
+  bankName: z.string(),
+  swiftCode: z.string(),
+  iban: z.string().nullable(),
+  routingNumber: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// Define the user schema with the updated sellerProfile including bankAccount
 export const userSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   bannedUntil: z.string().nullable(),
-  role: z.enum(["ADMIN", "USER", "SELLER", "MODERATOR"]), // Adjust roles as needed
+  role: z.enum(["ADMIN", "USER", "SELLER", "MODERATOR"]),
+  sellerProfile: z
+    .object({
+      id: z.string(),
+      userId: z.string(),
+      profileImg: z.string().nullable(),
+      businessName: z.string(),
+      businessAddress: z.string(),
+      businessPhone: z.string(),
+      businessEmail: z.string(),
+      identityDoc: z.string().nullable(),
+      verificationDate: z.string().nullable(),
+      verificationStatus: z.enum(["PENDING", "APPROVED", "REJECTED", "IDLE"]),
+      balance: z.number().nullable(),
+      lastPayoutDate: z.string().nullable(),
+      bankAccount: bankAccountSchema.nullable(),
+    })
+    .nullable(),
 });
 
 export const roleOptions = [
@@ -51,11 +88,17 @@ export const roleOptions = [
 ];
 
 export type UserSchema = z.infer<typeof userSchema>;
+type SellerProfileType = NonNullable<UserSchema["sellerProfile"]>;
+type VerificationStatusType = SellerProfileType["verificationStatus"];
+//type VerificationStatus = UserSchema["sellerProfile"][];
 
 interface DialogProps {
   user: UserSchema;
   onClose: () => void;
-  onAction: () => Promise<void>;
+  onAction: (
+    action: "ban" | "unban" | "delete" | "reviewApplication",
+    status?: string,
+  ) => Promise<void>;
 }
 
 const BanUserDialog: React.FC<DialogProps> = ({ user, onClose, onAction }) => (
@@ -69,7 +112,9 @@ const BanUserDialog: React.FC<DialogProps> = ({ user, onClose, onAction }) => (
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-      <AlertDialogAction onClick={onAction}>Ban User</AlertDialogAction>
+      <AlertDialogAction onClick={() => onAction("ban")}>
+        Ban User
+      </AlertDialogAction>
     </AlertDialogFooter>
   </>
 );
@@ -89,7 +134,9 @@ const UnbanUserDialog: React.FC<DialogProps> = ({
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-      <AlertDialogAction onClick={onAction}>Unban User</AlertDialogAction>
+      <AlertDialogAction onClick={() => onAction("unban")}>
+        Unban User
+      </AlertDialogAction>
     </AlertDialogFooter>
   </>
 );
@@ -110,14 +157,147 @@ const DeleteUserDialog: React.FC<DialogProps> = ({
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-      <AlertDialogAction onClick={onAction}>Delete User</AlertDialogAction>
+      <AlertDialogAction onClick={() => onAction("delete")}>
+        Delete User
+      </AlertDialogAction>
     </AlertDialogFooter>
   </>
 );
 
+const ReviewApplicationDialog: React.FC<DialogProps> = ({
+  user,
+  onClose,
+  onAction,
+}) => {
+  const [status, setStatus] = React.useState<VerificationStatusType>(
+    user.sellerProfile?.verificationStatus || "PENDING",
+  );
+
+  if (!user.sellerProfile) {
+    return (
+      <AlertDialogHeader>
+        <AlertDialogTitle>Seller Profile Not Found</AlertDialogTitle>
+        <AlertDialogDescription>
+          This user does not have a seller profile.
+        </AlertDialogDescription>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose}>Close</AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogHeader>
+    );
+  }
+
+  return (
+    <>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Review Seller Application</AlertDialogTitle>
+        <AlertDialogDescription>
+          Review and update the status of the seller application for{" "}
+          {user.email}.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-xl font-medium">Business Profile</h3>
+            <div className="mt-4 grid gap-4">
+              <div className="grid grid-cols-2 items-center">
+                <div className="text-muted-foreground">Company Name</div>
+                <div>{user.sellerProfile.businessName}</div>
+              </div>
+              <div className="grid grid-cols-2 items-center">
+                <div className="text-muted-foreground">Business Address</div>
+                <div>{user.sellerProfile.businessAddress}</div>
+              </div>
+              <div className="grid grid-cols-2 items-center">
+                <div className="text-muted-foreground">Business Phone</div>
+                <div>{user.sellerProfile.businessPhone}</div>
+              </div>
+              <div className="grid grid-cols-2 items-center">
+                <div className="text-muted-foreground">Business Email</div>
+                <div>{user.sellerProfile.businessEmail}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-xl font-medium">Bank Account Details</h3>
+            <div className="mt-4 grid gap-4">
+              {user.sellerProfile.bankAccount ? (
+                <>
+                  <div className="grid grid-cols-2 items-center">
+                    <div className="text-muted-foreground">
+                      Account Holder Name
+                    </div>
+                    <div>
+                      {user.sellerProfile.bankAccount.accountHolderName}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 items-center">
+                    <div className="text-muted-foreground">Account Number</div>
+                    <div>{user.sellerProfile.bankAccount.accountNumber}</div>
+                  </div>
+                  <div className="grid grid-cols-2 items-center">
+                    <div className="text-muted-foreground">Bank Name</div>
+                    <div>{user.sellerProfile.bankAccount.bankName}</div>
+                  </div>
+                  <div className="grid grid-cols-2 items-center">
+                    <div className="text-muted-foreground">SWIFT Code</div>
+                    <div>{user.sellerProfile.bankAccount.swiftCode}</div>
+                  </div>
+                  <div className="grid grid-cols-2 items-center">
+                    <div className="text-muted-foreground">IBAN</div>
+                    <div>{user.sellerProfile.bankAccount.iban || "N/A"}</div>
+                  </div>
+                  <div className="grid grid-cols-2 items-center">
+                    <div className="text-muted-foreground">Routing Number</div>
+                    <div>{user.sellerProfile.bankAccount.routingNumber}</div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-muted-foreground">
+                  No bank account details available
+                </div>
+              )}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xl font-medium">Verification Status</h3>
+            <div className="mt-4">
+              <Select
+                onValueChange={(e) => setStatus(e as VerificationStatusType)}
+                defaultValue={status}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select application status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="APPROVED">Approved</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                  <SelectItem value="IDLE" disabled>
+                    Idle
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <AlertDialogFooter>
+        <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+        <Button onClick={() => onAction("reviewApplication", status)}>
+          Update Status
+        </Button>
+      </AlertDialogFooter>
+    </>
+  );
+};
+
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
-  tableSchema: ZodSchema<UserSchema>;
+  tableSchema: z.ZodSchema<UserSchema>;
 }
 
 export function UserTableRowActions<TData>({
@@ -127,10 +307,11 @@ export function UserTableRowActions<TData>({
   const user = tableSchema.parse(row.original);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
 
-  const handleAction = async (action: string) => {
+  const handleAction = async (action: string, status?: string) => {
     try {
       let url = `${window.ENV.BACKEND_URL}/api/v1/admin/${user.email}`;
       let method = "POST";
+      let body = null;
 
       switch (action) {
         case "ban":
@@ -142,6 +323,11 @@ export function UserTableRowActions<TData>({
         case "delete":
           method = "DELETE";
           break;
+        case "reviewApplication":
+          url = `${window.ENV.BACKEND_URL}/api/v1/admin/seller-profile/${user.email}`;
+          method = "PUT";
+          body = JSON.stringify({ verificationStatus: status });
+          break;
         default:
           throw new Error("Invalid action");
       }
@@ -149,13 +335,17 @@ export function UserTableRowActions<TData>({
       const res = await fetch(url, {
         method: method,
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: body,
       });
 
       if (!res.ok) {
         throw new Error("Oh no! Something went wrong!");
       }
 
-      toast.success(`User ${action}ed successfully`);
+      toast.success(`Action ${action} completed successfully`);
       window.location.reload();
     } catch (e) {
       showErrorToast(e);
@@ -188,6 +378,14 @@ export function UserTableRowActions<TData>({
             onAction={() => handleAction("delete")}
           />
         );
+      case "reviewApplication":
+        return (
+          <ReviewApplicationDialog
+            user={user}
+            onClose={() => setActiveDialog(null)}
+            onAction={(action, status) => handleAction(action, status)}
+          />
+        );
       default:
         return null;
     }
@@ -217,9 +415,16 @@ export function UserTableRowActions<TData>({
             <DropdownMenuItem disabled>Edit Profile</DropdownMenuItem>
           )}
           {user.role === "SELLER" && (
-            <Link to={`/app/admin/users/seller-profile/${user.email}`}>
-              <DropdownMenuItem>Edit Seller Profile</DropdownMenuItem>
-            </Link>
+            <>
+              <Link to={`/app/admin/users/seller-profile/${user.email}`}>
+                <DropdownMenuItem>Edit Seller Profile</DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem
+                onClick={() => setActiveDialog("reviewApplication")}
+              >
+                Review Application
+              </DropdownMenuItem>
+            </>
           )}
           {user.bannedUntil ? (
             <DropdownMenuItem onClick={() => setActiveDialog("unban")}>
@@ -242,7 +447,9 @@ export function UserTableRowActions<TData>({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialogContent>{renderDialogContent()}</AlertDialogContent>
+      <AlertDialogContent className="w-1/2 max-w-full">
+        {renderDialogContent()}
+      </AlertDialogContent>
     </AlertDialog>
   );
 }
