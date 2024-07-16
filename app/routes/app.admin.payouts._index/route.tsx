@@ -16,9 +16,6 @@ export const ErrorBoundary = () => {
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   if (!checkAuthCookie(request)) return redirect("/login");
-  const url = new URL(request.url);
-  const page = url.searchParams.get("page") || "1";
-  const limit = url.searchParams.get("limit") || "10";
   const res = await fetch(`${process.env.BACKEND_URL}/api/v1/payout-requests`, {
     method: "GET",
     headers: {
@@ -29,9 +26,9 @@ export const loader: LoaderFunction = async ({ request }) => {
   });
   if (!res.ok) throw new Error("Oh no! Something went wrong!");
   const data = await res.json();
+  console.log(data);
   return json({
-    items: data.data,
-    meta: data.meta,
+    items: data,
     success: true,
   });
 };
@@ -47,7 +44,7 @@ export default function PayoutRequestsPage() {
               data={items ?? []}
               columns={columns}
               filters={filters}
-              search="sellerId"
+              search="email"
             />
           </>
         )}

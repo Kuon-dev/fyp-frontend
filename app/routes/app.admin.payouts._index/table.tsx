@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,15 +25,38 @@ import {
 import { showErrorToast } from "@/lib/handle-error";
 import { toast } from "sonner";
 
-// PayoutRequest schema
+// Define the schema for the bank account
+const bankAccountSchema = z.object({
+  accountHolderName: z.string(),
+  accountNumber: z.string(),
+  bankName: z.string(),
+  swiftCode: z.string(),
+  iban: z.string().nullable(),
+  routingNumber: z.string().nullable(),
+});
+
+// Define the schema for the seller profile
+const sellerProfileSchema = z.object({
+  id: z.string(),
+  businessName: z.string(),
+  businessEmail: z.string(),
+  businessPhone: z.string(),
+  bankAccount: bankAccountSchema,
+  user: z.object({
+    email: z.string(),
+    bannedUntil: z.string().nullable(),
+  }),
+});
+
+// Updated PayoutRequest schema
 export const payoutRequestSchema = z.object({
   id: z.string(),
-  sellerId: z.string(),
-  amount: z.number(),
-  status: z.enum(["PENDING", "APPROVED", "REJECTED", "PROCESSED"]),
+  totalAmount: z.number(),
+  status: z.enum(["PENDING", "REJECTED", "PROCESSED"]),
   createdAt: z.string(),
   updatedAt: z.string(),
   processedAt: z.string().nullable(),
+  sellerProfile: sellerProfileSchema,
 });
 
 export type PayoutRequestSchema = z.infer<typeof payoutRequestSchema>;
@@ -41,7 +64,6 @@ export type PayoutRequestSchema = z.infer<typeof payoutRequestSchema>;
 // Status options for filter
 export const statusOptions = [
   { label: "Pending", value: "PENDING" },
-  { label: "Approved", value: "APPROVED" },
   { label: "Rejected", value: "REJECTED" },
   { label: "Processed", value: "PROCESSED" },
 ];
@@ -56,29 +78,55 @@ const ProcessPayoutRequestDialog: React.FC<DialogProps> = ({
   payoutRequest,
   onClose,
   onAction,
-}) => (
-  <>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Process Payout Request</AlertDialogTitle>
-      <AlertDialogDescription>
-        Are you sure you want to process this payout request for $
-        {payoutRequest.amount}?
+}) => {
+  const { sellerProfile, totalAmount } = payoutRequest;
+  const { bankAccount } = sellerProfile;
+
+  return (
+    <>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Process Payout Request</AlertDialogTitle>
+        <AlertDialogDescription>
+          Please review the following information before processing the payout
+          request for ${totalAmount.toFixed(2)}.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <div className="my-4">
+        <h3 className="font-semibold mb-2">Seller Information:</h3>
+        <p>Business Name: {sellerProfile.businessName}</p>
+        <p>Business Email: {sellerProfile.businessEmail}</p>
+        <p>Business Phone: {sellerProfile.businessPhone}</p>
+      </div>
+      <div className="my-4">
+        <h3 className="font-semibold mb-2">Bank Account Information:</h3>
+        <p>Account Holder: {bankAccount.accountHolderName}</p>
+        <p>Account Number: {bankAccount.accountNumber}</p>
+        <p>Bank Name: {bankAccount.bankName}</p>
+        <p>Swift Code: {bankAccount.swiftCode}</p>
+        {bankAccount.iban && <p>IBAN: {bankAccount.iban}</p>}
+        {bankAccount.routingNumber && (
+          <p>Routing Number: {bankAccount.routingNumber}</p>
+        )}
+      </div>
+      <AlertDialogDescription className="mt-4 text-sm text-gray-500">
+        Note: This action will only initiate the payout process. The actual
+        transfer of funds will be completed after this step.
       </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-      <AlertDialogAction onClick={() => onAction("approve")}>
-        Approve
-      </AlertDialogAction>
-      <AlertDialogAction
-        onClick={() => onAction("reject")}
-        className="bg-red-600 hover:bg-red-700"
-      >
-        Reject
-      </AlertDialogAction>
-    </AlertDialogFooter>
-  </>
-);
+      <AlertDialogFooter>
+        <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+        <AlertDialogAction onClick={() => onAction("approve")}>
+          Approve and Process Payout
+        </AlertDialogAction>
+        <AlertDialogAction
+          onClick={() => onAction("reject")}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          Reject Payout
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </>
+  );
+};
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -90,7 +138,7 @@ export function PayoutRequestTableRowActions<TData>({
   tableSchema,
 }: DataTableRowActionsProps<TData>) {
   const payoutRequest = tableSchema.parse(row.original);
-  const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [activeDialog, setActiveDialog] = useState<string | null>(null);
 
   const handleAction = async (action: string) => {
     try {
@@ -146,7 +194,10 @@ export function PayoutRequestTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onClick={() => setActiveDialog("process")}>
+          <DropdownMenuItem
+            onClick={() => setActiveDialog("process")}
+            disabled={row.getValue("processedAt")}
+          >
             Process Request
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -183,34 +234,26 @@ export const columns: ColumnDef<PayoutRequestSchema>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "id",
+    id: "email",
+    accessorKey: "sellerProfile.user.email",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Request ID" />
+      <DataTableColumnHeader column={column} title="User Email" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px] max-w-[80px] truncate">{row.getValue("id")}</div>
+      <div className="max-w-[200px] truncate">
+        {row.original.sellerProfile.user.email}
+      </div>
     ),
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: false,
   },
   {
-    accessorKey: "sellerId",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Seller ID" />
-    ),
-    cell: ({ row }) => (
-      <div className="max-w-[150px] truncate">{row.getValue("sellerId")}</div>
-    ),
-  },
-  {
-    accessorKey: "amount",
+    accessorKey: "totalAmount",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Amount" />
     ),
     cell: ({ row }) => (
-      <div className="text-right">
-        ${row.getValue<number>("amount").toFixed(2)}
-      </div>
+      <div className="">${row.getValue<number>("totalAmount").toFixed(2)}</div>
     ),
   },
   {
@@ -219,7 +262,7 @@ export const columns: ColumnDef<PayoutRequestSchema>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => (
-      <div className="text-center">{row.getValue("status")}</div>
+      <div className="">{row.getValue("status")}</div>
     ),
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -232,15 +275,6 @@ export const columns: ColumnDef<PayoutRequestSchema>[] = [
     ),
     cell: ({ row }) => (
       <div>{new Date(row.getValue<string>("createdAt")).toLocaleString()}</div>
-    ),
-  },
-  {
-    accessorKey: "updatedAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Updated At" />
-    ),
-    cell: ({ row }) => (
-      <div>{new Date(row.getValue<string>("updatedAt")).toLocaleString()}</div>
     ),
   },
   {

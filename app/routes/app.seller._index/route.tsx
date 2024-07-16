@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { showErrorToast } from "@/lib/handle-error";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "@remix-run/react";
 import {
   SellerProfileFormData,
@@ -11,6 +11,46 @@ import { Shell } from "@/components/landing/shell";
 import { useUserStore } from "@/stores/user-store";
 import PendingSellerComponent from "@/components/user/seller-pending";
 import { DataTableLoadingComponent } from "@/components/dashboard/loading";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  ResponsiveContainer,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Line,
+  LineChart,
+} from "recharts";
+//import { ClientOnly } from "remix-utils/client-only";
+
+interface SalesDataPoint {
+  date: string;
+  revenue: number;
+  salesCount: number;
+}
+
+interface RecentReview {
+  id: string;
+  content: string;
+  rating: number;
+  createdAt: string;
+  repoName: string;
+  userName: string;
+}
+
+interface DashboardData {
+  salesData: SalesDataPoint[];
+  recentReviews: RecentReview[];
+}
 
 // Component for idle status
 const IdleSellerComponent: React.FC<{
@@ -77,22 +117,154 @@ const RejectedSellerComponent: React.FC<{
   </>
 );
 
-// Component for active status
-const ActiveSellerComponent: React.FC = () => (
-  <Card className="mb-8 bg-muted/40">
-    <CardContent className="pt-6">
-      <h2 className="text-2xl font-semibold mb-4">Welcome, Verified Seller!</h2>
-      <p className="mb-4">
-        Congratulations! Your seller account is now active. You can start
-        listing your code snippets and earning on the Kortex platform.
-      </p>
-      <p>
-        Use the navigation menu to access your seller dashboard, manage your
-        listings, and track your earnings.
-      </p>
-    </CardContent>
-  </Card>
-);
+const ActiveSellerComponent: React.FC = () => {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch(
+          `${window.ENV.BACKEND_URL}/api/v1/seller/dashboard`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+        const data: DashboardData = await response.json();
+        setDashboardData(data);
+      } catch (err) {
+        setError("An error occurred while fetching dashboard data");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Card className="mb-8 bg-muted/40">
+        <CardContent className="pt-6 flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  const chartConfig: ChartConfig = {
+    revenue: {
+      label: "Revenue",
+      color: "#8884d8",
+    },
+    salesCount: {
+      label: "Sales Count",
+      color: "#82ca9d",
+    },
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="mb-8 bg-muted/40">
+        <CardHeader>
+          <CardTitle>Welcome, Verified Seller!</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">
+            Congratulations! Your seller account is now active. You can start
+            listing your code snippets and earning on the Kortex platform.
+          </p>
+          <p>
+            Use the navigation menu to access your seller dashboard, manage your
+            listings, and track your earnings.
+          </p>
+        </CardContent>
+      </Card>
+
+      {dashboardData && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Sales Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={chartConfig}
+                className="min-h-[300px] w-full"
+              >
+                <LineChart data={dashboardData.salesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) =>
+                      new Date(value).toLocaleDateString()
+                    }
+                  />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="var(--color-revenue)"
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="salesCount"
+                    stroke="var(--color-salesCount)"
+                  />
+                </LineChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Reviews</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {dashboardData.recentReviews.map((review) => (
+                <div key={review.id} className="mb-4 p-4 border rounded">
+                  <h4 className="font-semibold">{review.repoName}</h4>
+                  <p className="text-sm text-gray-500">
+                    By {review.userName} on{" "}
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="mt-2">{review.content}</p>
+                  <p className="mt-1 text-yellow-500">
+                    Rating: {review.rating}/5
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+};
 
 const SellerDashboardComponent: React.FC = () => {
   const navigate = useNavigate();
