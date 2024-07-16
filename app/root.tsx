@@ -21,7 +21,6 @@ import { Toaster } from "@/components/ui/sonner";
 import CookieBanner from "@/components/landing/cookie-banner";
 import { useUserStore } from "./stores/user-store";
 import { useEffect } from "react";
-import BannedBanner from "./components/auth/banned";
 import { ExternalScripts } from "remix-utils/external-scripts";
 import { cssBundleHref } from "@remix-run/css-bundle";
 //import styles from '~/styles/global.css?url';

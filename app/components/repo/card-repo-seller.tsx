@@ -24,10 +24,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 
-interface Repo {
+export interface Repo {
   id: string;
   userId: string;
   sourceJs: string;
@@ -53,6 +61,7 @@ interface IframeRendererProps {
   sourceCss: string;
   language: "JSX" | "TSX";
   name: string;
+  fullscreen?: boolean;
 }
 
 const removeImports = (code: string): string => {
@@ -83,61 +92,84 @@ const transformCode = (code: string) => {
 };
 
 const IframeRenderer: React.FC<IframeRendererProps> = React.memo(
-  ({ sourceJs, sourceCss, language, name }) => {
+  ({ sourceJs, sourceCss, language, name, fullscreen = false }) => {
     const [transformedCode, setTransformedCode] = useState<string>("");
     const [componentName, setComponentName] = useState<string>("");
     const [hasRenderMethod, setHasRenderMethod] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-      try {
-        const codeWithoutImports = removeImports(sourceJs);
-        const [extractedName, hasRender, codeWithoutRender] =
-          extractComponentName(codeWithoutImports);
+      const processCode = async () => {
+        try {
+          const codeWithoutImports = removeImports(sourceJs);
+          const [extractedName, hasRender, codeWithoutRender] =
+            extractComponentName(codeWithoutImports);
 
-        setComponentName(extractedName || name);
-        setHasRenderMethod(hasRender);
+          // eslint-disable-next-line prefer-const
+          let finalComponentName = extractedName || name;
+          setComponentName(finalComponentName);
+          setHasRenderMethod(hasRender);
 
-        const result = transformCode(codeWithoutRender);
-        setTransformedCode(result);
-      } catch (error) {
-        console.error("Error transforming code:", error);
-        toast.error("Failed to transform code");
-        setHasRenderMethod(false);
-      }
+          const result = await transformCode(codeWithoutRender);
+          setTransformedCode(result);
+          setError(null);
+        } catch (error) {
+          console.error("Error processing code:", error);
+          setError("Failed to process code");
+          setHasRenderMethod(false);
+        }
+      };
+
+      processCode();
     }, [sourceJs, name]);
 
-    const iframeSrcDoc = useMemo(
-      () => `
-    <html>
-      <head>
-        <style>${sourceCss}</style>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-        <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-        ${language === "TSX" ? '<script src="https://unpkg.com/typescript@latest/lib/typescriptServices.js"></script>' : ""}
-      </head>
-      <body>
-        <div id="root"></div>
-        <script>
-          ${transformedCode}
-          const Component = ${componentName};
-          if (typeof Component === 'undefined') {
-            document.getElementById('root').innerHTML = 'Component not found';
-          } else {
-            const domNode = document.getElementById('root');
-            const root = ReactDOM.createRoot(domNode);
-            root.render(React.createElement(Component));
-          }
-        </script>
-      </body>
-    </html>
-  `,
-      [sourceCss, language, transformedCode, componentName],
-    );
+    const iframeSrcDoc = useMemo(() => {
+      if (!transformedCode || !componentName) return null;
+
+      return `
+      <html>
+        <head>
+          <style>${sourceCss}</style>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+          <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+          ${language === "TSX" ? '<script src="https://unpkg.com/typescript@latest/lib/typescriptServices.js"></script>' : ""}
+        </head>
+        <body>
+          <div id="root"></div>
+          <script>
+            ${transformedCode}
+            (function() {
+              const Component = ${componentName};
+              if (typeof Component === 'function' || (typeof Component === 'object' && Component !== null && typeof Component.$$typeof === 'symbol')) {
+                const domNode = document.getElementById('root');
+                const root = ReactDOM.createRoot(domNode);
+                root.render(React.createElement(Component));
+              } else {
+                document.getElementById('root').innerHTML = 'Component not found or not a valid React component';
+              }
+            })();
+          </script>
+        </body>
+      </html>
+    `;
+    }, [sourceCss, language, transformedCode, componentName]);
+
+    if (error) {
+      return (
+        <div
+          className={`border rounded flex items-center justify-center bg-red-100 text-red-800 ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
+        >
+          <p>{error}</p>
+        </div>
+      );
+    }
 
     if (!hasRenderMethod) {
       return (
-        <div className="w-full h-48 border rounded flex items-center justify-center bg-yellow-100 text-yellow-800">
+        <div
+          className={`border rounded flex items-center justify-center bg-muted/40 text-yellow-300 ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
+        >
           <p>
             Warning: No render method found. Unable to display component
             preview.
@@ -146,11 +178,22 @@ const IframeRenderer: React.FC<IframeRendererProps> = React.memo(
       );
     }
 
+    if (!iframeSrcDoc) {
+      return (
+        <div
+          className={`border rounded flex items-center justify-center bg-muted/40 ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
+        >
+          <p>Loading component...</p>
+        </div>
+      );
+    }
+
     return (
       <iframe
         srcDoc={iframeSrcDoc}
-        className="w-full h-48 border rounded"
+        className={`border rounded ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
         title={name}
+        sandbox="allow-scripts"
       />
     );
   },
@@ -160,6 +203,7 @@ IframeRenderer.displayName = "IframeRenderer";
 
 const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<boolean>(false);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleDelete = useCallback(async () => {
@@ -224,10 +268,8 @@ const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
               <Button className="w-full">Actions</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to={`/app/seller/repos/${repo.id}/fullscreen`}>
-                  View Fullscreen
-                </Link>
+              <DropdownMenuItem onSelect={() => setIsFullscreenOpen(true)}>
+                View Fullscreen
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to={`/app/seller/repos/${repo.id}/edit`}>Edit Repo</Link>
@@ -257,6 +299,32 @@ const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+        <DialogContent className="max-w-full h-full m-0 p-0">
+          <DialogHeader className="absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-4 z-10">
+            <div className="flex justify-between items-center">
+              <DialogTitle>{repo.name} - Fullscreen Preview</DialogTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsFullscreenOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="h-full pt-16">
+            <IframeRenderer
+              sourceJs={repo.sourceJs}
+              sourceCss={repo.sourceCss}
+              language={repo.language}
+              name={repo.name}
+              fullscreen
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 });

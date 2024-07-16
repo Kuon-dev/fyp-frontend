@@ -28,6 +28,8 @@ export interface MonacoStoreType {
   toggleMinimap: () => void;
   increaseFontSize: () => void;
   decreaseFontSize: () => void;
+  setEditorValue: (value: string) => void;
+  setCssValue: (value: string) => void;
 }
 
 const DEFAULT_EDITOR_OPTIONS: EditorOptions = {
@@ -42,10 +44,9 @@ const DEFAULT_EDITOR_OPTIONS: EditorOptions = {
 export const useMonacoStore = create<MonacoStoreType>()(
   persist(
     (set) => ({
-      editorValue: DEFAULT_REACT_MONACO,
-      cssValue: DEFAULT_CSS_MONACO,
+      editorValue: "",
+      cssValue: "",
       editorOptions: DEFAULT_EDITOR_OPTIONS,
-
       handleEditorChange: (value: string, language: EditorLanguage) =>
         set((state) => {
           if (language === "css") {
@@ -53,12 +54,10 @@ export const useMonacoStore = create<MonacoStoreType>()(
           }
           return { editorValue: value };
         }),
-
       setEditorOptions: (options: Partial<EditorOptions>) =>
         set((state) => ({
           editorOptions: { ...state.editorOptions, ...options },
         })),
-
       resetEditorContent: (language: EditorLanguage) =>
         set((state) => {
           if (language === "css") {
@@ -66,7 +65,6 @@ export const useMonacoStore = create<MonacoStoreType>()(
           }
           return { editorValue: DEFAULT_REACT_MONACO };
         }),
-
       toggleMinimap: () =>
         set((state) => ({
           editorOptions: {
@@ -74,7 +72,6 @@ export const useMonacoStore = create<MonacoStoreType>()(
             minimap: { enabled: !state.editorOptions.minimap.enabled },
           },
         })),
-
       increaseFontSize: () =>
         set((state) => ({
           editorOptions: {
@@ -82,7 +79,6 @@ export const useMonacoStore = create<MonacoStoreType>()(
             fontSize: state.editorOptions.fontSize + 1,
           },
         })),
-
       decreaseFontSize: () =>
         set((state) => ({
           editorOptions: {
@@ -90,6 +86,8 @@ export const useMonacoStore = create<MonacoStoreType>()(
             fontSize: Math.max(8, state.editorOptions.fontSize - 1), // Prevent font size from going below 8
           },
         })),
+      setEditorValue: (value: string) => set({ editorValue: value }),
+      setCssValue: (value: string) => set({ cssValue: value }),
     }),
     {
       name: "monaco-store",
