@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "@remix-run/react";
 import { transform } from "sucrase";
 import {
@@ -34,6 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface Repo {
   id: string;
@@ -61,6 +63,7 @@ interface IframeRendererProps {
   sourceCss: string;
   language: "JSX" | "TSX";
   name: string;
+  className?: string;
   fullscreen?: boolean;
 }
 
@@ -92,109 +95,123 @@ const transformCode = (code: string) => {
 };
 
 const IframeRenderer: React.FC<IframeRendererProps> = React.memo(
-  ({ sourceJs, sourceCss, language, name, fullscreen = false }) => {
-    const [transformedCode, setTransformedCode] = useState<string>("");
-    const [componentName, setComponentName] = useState<string>("");
-    const [hasRenderMethod, setHasRenderMethod] = useState<boolean>(false);
+  ({ sourceJs, sourceCss, language, name, className, fullscreen = false }) => {
+    const [iframeSrcDoc, setIframeSrcDoc] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [key, setKey] = useState(0); // Key for forcing re-render
 
     useEffect(() => {
       const processCode = async () => {
+        setIsProcessing(true);
         try {
+          // Your existing code processing logic here
           const codeWithoutImports = removeImports(sourceJs);
           const [extractedName, hasRender, codeWithoutRender] =
             extractComponentName(codeWithoutImports);
+          const finalComponentName = extractedName || name;
 
-          // eslint-disable-next-line prefer-const
-          let finalComponentName = extractedName || name;
-          setComponentName(finalComponentName);
-          setHasRenderMethod(hasRender);
+          if (!hasRender) {
+            setError(
+              "Warning: No render method found. Unable to display component preview.",
+            );
+            setIframeSrcDoc(null);
+            return;
+          }
 
-          const result = await transformCode(codeWithoutRender);
-          setTransformedCode(result);
+          const transformedCode = await transformCode(codeWithoutRender);
+
+          const newSrcDoc = `
+            <html>
+              <head>
+                <style>${sourceCss}</style>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+                <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+                ${language === "TSX" ? '<script src="https://unpkg.com/typescript@latest/lib/typescriptServices.js"></script>' : ""}
+              </head>
+              <body>
+                <div id="root"></div>
+                <script>
+                  ${transformedCode}
+                  (function() {
+                    const Component = ${finalComponentName};
+                    if (typeof Component === 'function' || (typeof Component === 'object' && Component !== null && typeof Component.$$typeof === 'symbol')) {
+                      const domNode = document.getElementById('root');
+                      const root = ReactDOM.createRoot(domNode);
+                      root.render(React.createElement(Component));
+                    } else {
+                      document.getElementById('root').innerHTML = 'Component not found or not a valid React component';
+                    }
+                  })();
+                </script>
+              </body>
+            </html>
+          `;
+
+          setIframeSrcDoc(newSrcDoc);
           setError(null);
         } catch (error) {
           console.error("Error processing code:", error);
-          setError("Failed to process code");
-          setHasRenderMethod(false);
+          setError(error);
+          setIframeSrcDoc(null);
+        } finally {
+          setIsProcessing(false);
+          setKey((prevKey) => prevKey + 1); // Force re-render
         }
       };
 
       processCode();
-    }, [sourceJs, name]);
+    }, [sourceJs, sourceCss, language, name]);
 
-    const iframeSrcDoc = useMemo(() => {
-      if (!transformedCode || !componentName) return null;
-
-      return `
-      <html>
-        <head>
-          <style>${sourceCss}</style>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-          <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-          ${language === "TSX" ? '<script src="https://unpkg.com/typescript@latest/lib/typescriptServices.js"></script>' : ""}
-        </head>
-        <body>
-          <div id="root"></div>
-          <script>
-            ${transformedCode}
-            (function() {
-              const Component = ${componentName};
-              if (typeof Component === 'function' || (typeof Component === 'object' && Component !== null && typeof Component.$$typeof === 'symbol')) {
-                const domNode = document.getElementById('root');
-                const root = ReactDOM.createRoot(domNode);
-                root.render(React.createElement(Component));
-              } else {
-                document.getElementById('root').innerHTML = 'Component not found or not a valid React component';
-              }
-            })();
-          </script>
-        </body>
-      </html>
-    `;
-    }, [sourceCss, language, transformedCode, componentName]);
-
-    if (error) {
-      return (
-        <div
-          className={`border rounded flex items-center justify-center bg-red-100 text-red-800 ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
-        >
-          <p>{error}</p>
-        </div>
-      );
-    }
-
-    if (!hasRenderMethod) {
-      return (
-        <div
-          className={`border rounded flex items-center justify-center bg-muted/40 text-yellow-300 ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
-        >
-          <p>
-            Warning: No render method found. Unable to display component
-            preview.
-          </p>
-        </div>
-      );
-    }
-
-    if (!iframeSrcDoc) {
-      return (
-        <div
-          className={`border rounded flex items-center justify-center bg-muted/40 ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
-        >
-          <p>Loading component...</p>
-        </div>
-      );
-    }
+    const containerClass = cn(
+      "relative border rounded overflow-hidden",
+      fullscreen ? "w-full h-full" : "w-full h-48",
+      className,
+    );
 
     return (
-      <iframe
-        srcDoc={iframeSrcDoc}
-        className={`border rounded ${fullscreen ? "w-full h-full" : "w-full h-48"}`}
-        title={name}
-        sandbox="allow-scripts"
-      />
+      <div className={containerClass}>
+        <AnimatePresence mode="wait">
+          {isProcessing && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 flex items-center justify-center bg-muted/40 z-10"
+            >
+              <p>Processing component...</p>
+            </motion.div>
+          )}
+          {error && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 flex items-center justify-center bg-red-100 text-red-800 z-10"
+            >
+              <p>{error}</p>
+            </motion.div>
+          )}
+          {iframeSrcDoc && !isProcessing && !error && (
+            <motion.iframe
+              key={`iframe-${key}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              srcDoc={iframeSrcDoc}
+              className="w-full h-full"
+              title={name}
+              sandbox="allow-scripts"
+            />
+          )}
+        </AnimatePresence>
+      </div>
     );
   },
 );

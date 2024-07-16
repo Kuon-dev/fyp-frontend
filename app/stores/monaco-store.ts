@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create, StateCreator } from "zustand";
+import { persist, PersistOptions } from "zustand/middleware";
 import {
   DEFAULT_REACT_MONACO,
   DEFAULT_CSS_MONACO,
@@ -41,59 +41,70 @@ const DEFAULT_EDITOR_OPTIONS: EditorOptions = {
   lineNumbers: "on",
 };
 
-export const useMonacoStore = create<MonacoStoreType>()(
-  persist(
-    (set) => ({
-      editorValue: "",
-      cssValue: "",
-      editorOptions: DEFAULT_EDITOR_OPTIONS,
-      handleEditorChange: (value: string, language: EditorLanguage) =>
-        set((state) => {
-          if (language === "css") {
-            return { cssValue: value };
-          }
-          return { editorValue: value };
-        }),
-      setEditorOptions: (options: Partial<EditorOptions>) =>
-        set((state) => ({
-          editorOptions: { ...state.editorOptions, ...options },
-        })),
-      resetEditorContent: (language: EditorLanguage) =>
-        set((state) => {
-          if (language === "css") {
-            return { cssValue: DEFAULT_CSS_MONACO };
-          }
-          return { editorValue: DEFAULT_REACT_MONACO };
-        }),
-      toggleMinimap: () =>
-        set((state) => ({
-          editorOptions: {
-            ...state.editorOptions,
-            minimap: { enabled: !state.editorOptions.minimap.enabled },
-          },
-        })),
-      increaseFontSize: () =>
-        set((state) => ({
-          editorOptions: {
-            ...state.editorOptions,
-            fontSize: state.editorOptions.fontSize + 1,
-          },
-        })),
-      decreaseFontSize: () =>
-        set((state) => ({
-          editorOptions: {
-            ...state.editorOptions,
-            fontSize: Math.max(8, state.editorOptions.fontSize - 1), // Prevent font size from going below 8
-          },
-        })),
-      setEditorValue: (value: string) => set({ editorValue: value }),
-      setCssValue: (value: string) => set({ cssValue: value }),
+type PersistedState = {
+  editorOptions: EditorOptions;
+};
+
+type MonacoStoreCreator = StateCreator<
+  MonacoStoreType,
+  [],
+  [["zustand/persist", PersistedState]]
+>;
+
+const createMonacoStore: MonacoStoreCreator = (set) => ({
+  editorValue: "",
+  cssValue: "",
+  editorOptions: DEFAULT_EDITOR_OPTIONS,
+  handleEditorChange: (value: string, language: EditorLanguage) =>
+    set(() => {
+      if (language === "css") {
+        return { cssValue: value };
+      }
+      return { editorValue: value };
     }),
-    {
-      name: "monaco-store",
-      partialize: (state) => ({
-        editorOptions: state.editorOptions,
-      }),
-    },
-  ),
+  setEditorOptions: (options: Partial<EditorOptions>) =>
+    set((state) => ({
+      editorOptions: { ...state.editorOptions, ...options },
+    })),
+  resetEditorContent: (language: EditorLanguage) =>
+    set(() => {
+      if (language === "css") {
+        return { cssValue: DEFAULT_CSS_MONACO };
+      }
+      return { editorValue: DEFAULT_REACT_MONACO };
+    }),
+  toggleMinimap: () =>
+    set((state) => ({
+      editorOptions: {
+        ...state.editorOptions,
+        minimap: { enabled: !state.editorOptions.minimap.enabled },
+      },
+    })),
+  increaseFontSize: () =>
+    set((state) => ({
+      editorOptions: {
+        ...state.editorOptions,
+        fontSize: state.editorOptions.fontSize + 1,
+      },
+    })),
+  decreaseFontSize: () =>
+    set((state) => ({
+      editorOptions: {
+        ...state.editorOptions,
+        fontSize: Math.max(8, state.editorOptions.fontSize - 1),
+      },
+    })),
+  setEditorValue: (value: string) => set({ editorValue: value }),
+  setCssValue: (value: string) => set({ cssValue: value }),
+});
+
+const persistOptions: PersistOptions<MonacoStoreType, PersistedState> = {
+  name: "monaco-store",
+  partialize: (state) => ({
+    editorOptions: state.editorOptions,
+  }),
+};
+
+export const useMonacoStore = create<MonacoStoreType>()(
+  persist(createMonacoStore, persistOptions),
 );

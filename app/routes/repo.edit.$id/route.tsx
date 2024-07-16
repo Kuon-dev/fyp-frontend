@@ -293,11 +293,7 @@ function CodeRepoEditorPreview() {
 
   return (
     <div className="w-full h-full">
-      <LiveProvider
-        code={renderValue}
-        noInline
-        scope={{ injectCSS, cssValue, injectTailwind }}
-      >
+      <LiveProvider code={renderValue} noInline scope={{ injectCSS, cssValue }}>
         <ClientOnly fallback={<MonacoLoading />}>
           {() => (
             <ResizablePanelGroup

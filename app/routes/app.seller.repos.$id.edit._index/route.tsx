@@ -1,5 +1,11 @@
-import { useRef, useState, useEffect, useCallback } from "react";
-import { getHighlighter } from "shiki";
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+} from "react";
 import { injectCSS, injectTailwind } from "@/integrations/monaco/inject-css";
 import { toast } from "sonner";
 import {
@@ -10,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMonacoStore } from "@/stores/monaco-store";
-import type { OnMount } from "@monaco-editor/react";
+import type { OnChange, OnMount } from "@monaco-editor/react";
 import { LiveProvider, LivePreview, LiveError } from "react-live";
 import Editor, { loader as monacoLoader } from "@monaco-editor/react";
 import type {
@@ -18,14 +24,15 @@ import type {
   Monaco,
 } from "@/integrations/monaco/native.types";
 import { Layout, LayoutBody, LayoutHeader } from "@/components/custom/layout";
-import { Spinner } from "@/components/custom/spinner";
 import { ClientOnly } from "remix-utils/client-only";
 import { Link, json, useLoaderData, useParams } from "@remix-run/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import debounce from "lodash/debounce";
 import { LoaderFunction } from "@remix-run/node";
-import type { Repo } from "@/components/repo/card-repo-seller";
+import IframeRenderer from "@/components/repo/editor-preview";
 import { EditorMenubar } from "@/components/repo/editor-menubar";
+import { MonacoLoading } from "@/components/repo/loading";
+import { useDebounce } from "@/hooks/use-debounce";
+import type { Repo } from "@/components/repo/card-repo-seller";
 
 monacoLoader.config({
   paths: {
@@ -136,9 +143,32 @@ const setupLanguageService = async (monaco: Monaco) => {
 
 export default function EditorLayout() {
   const { repo } = useLoaderData<{ repo: Repo }>();
+  const { id: repoId } = useParams();
   const [isSaving, setIsSaving] = useState(false);
-  const { editorOptions, editorValue, cssValue } = useMonacoStore();
   const [activeTab, setActiveTab] = useState("main");
+  const {
+    editorValue,
+    cssValue,
+    editorOptions,
+    setEditorValue,
+    setCssValue,
+    setEditorOptions,
+  } = useMonacoStore();
+
+  // Reset the store when the component mounts or when the repo ID changes
+  useEffect(() => {
+    const initializeEditor = () => {
+      setEditorValue(repo.sourceJs);
+      setCssValue(repo.sourceCss);
+      setEditorOptions({
+        language: repo.language === "JSX" ? "javascript" : "typescript",
+      });
+    };
+
+    initializeEditor();
+
+    // Clean up function to reset store when unmounting
+  }, [repoId, repo, setEditorValue, setCssValue, setEditorOptions]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -194,6 +224,7 @@ export default function EditorLayout() {
         </LayoutHeader>
         <LayoutBody>
           <CodeRepoEditorPreview
+            repoId={repoId}
             initialCode={repo.sourceJs}
             initialCss={repo.sourceCss}
             activeTab={activeTab}
@@ -205,10 +236,12 @@ export default function EditorLayout() {
 }
 
 function CodeRepoEditorPreview({
+  repoId,
   initialCode,
   initialCss,
   activeTab,
 }: {
+  repoId: string | undefined;
   initialCode: string;
   initialCss: string;
   activeTab: string;
@@ -217,16 +250,29 @@ function CodeRepoEditorPreview({
     editorValue,
     cssValue,
     editorOptions,
-    handleEditorChange,
+    handleEditorChange: storeHandleEditorChange,
     setEditorValue,
     setCssValue,
   } = useMonacoStore();
+
   const [renderValue, setRenderValue] = useState("");
-  const editorRef = useRef<IStandaloneCodeEditor | null>(null);
+  const jsEditorRef = useRef<IStandaloneCodeEditor | null>(null);
   const cssEditorRef = useRef<IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
+  const debouncedJsValue = useDebounce(editorValue, 500);
+  const debouncedCssValue = useDebounce(cssValue, 500);
 
-  // Set initial values
+  // Refs to hold the latest values
+  const latestEditorValueRef = useRef(editorValue);
+  const latestCssValueRef = useRef(cssValue);
+
+  // Update refs when values change
+  useEffect(() => {
+    latestEditorValueRef.current = editorValue;
+    latestCssValueRef.current = cssValue;
+  }, [editorValue, cssValue]);
+
+  // Set initial values and update when they change
   useEffect(() => {
     setEditorValue(initialCode);
     setCssValue(initialCss);
@@ -242,126 +288,79 @@ function CodeRepoEditorPreview({
     `);
   }, [editorValue, cssValue]);
 
-  const debouncedHandleEditorChange = useCallback(
-    debounce(
-      (
-        value: string,
-        language: "javascript" | "typescript" | "css",
-        editor: IStandaloneCodeEditor,
-      ) => {
-        const position = editor.getPosition();
-        handleEditorChange(value, language);
-        if (position) {
-          editor.setPosition(position);
-          editor.revealPositionInCenter(position);
-        }
-      },
-      500,
-    ),
-    [handleEditorChange],
-  );
+  const handleEditorBeforeMount = useCallback(async (monaco: Monaco) => {
+    await setupLanguageService(monaco);
+  }, []);
 
-  useEffect(() => {
-    if (editorRef.current && monacoRef.current) {
-      const monaco = monacoRef.current;
-      const editor = editorRef.current;
+  const updateEditorContent = useCallback(() => {
+    if (jsEditorRef.current && monacoRef.current) {
+      const model = jsEditorRef.current.getModel();
+      if (model && model.getValue() !== latestEditorValueRef.current) {
+        model.setValue(latestEditorValueRef.current);
+      }
+    }
+    if (cssEditorRef.current && monacoRef.current) {
+      const model = cssEditorRef.current.getModel();
+      if (model && model.getValue() !== latestCssValueRef.current) {
+        model.setValue(latestCssValueRef.current);
+      }
+    }
+  }, []);
+
+  const handleJsEditorDidMount: OnMount = useCallback(
+    (editor, monaco) => {
+      jsEditorRef.current = editor;
+      monacoRef.current = monaco;
 
       const uri = monaco.Uri.file(
         editorOptions.language === "javascript" ? "index.jsx" : "index.tsx",
       );
       let model = monaco.editor.getModel(uri);
-
       if (!model) {
         model = monaco.editor.createModel(
-          editor.getValue(),
+          latestEditorValueRef.current,
           editorOptions.language,
           uri,
         );
-      } else {
-        monaco.editor.setModelLanguage(model, editorOptions.language);
       }
-
       editor.setModel(model);
-    }
-  }, [editorOptions.language]);
+      updateEditorContent();
+    },
+    [editorOptions.language, updateEditorContent],
+  );
 
-  // Update editor content when active tab changes
+  const handleCssEditorDidMount: OnMount = useCallback(
+    (editor, monaco) => {
+      cssEditorRef.current = editor;
+      if (!monacoRef.current) monacoRef.current = monaco;
+
+      const uri = monaco.Uri.file("index.css");
+      let model = monaco.editor.getModel(uri);
+      if (!model) {
+        model = monaco.editor.createModel(
+          latestCssValueRef.current,
+          "css",
+          uri,
+        );
+      }
+      editor.setModel(model);
+      updateEditorContent();
+    },
+    [updateEditorContent],
+  );
+
+  // Update editor content whenever activeTab changes
   useEffect(() => {
-    if (activeTab === "main" && editorRef.current) {
-      const editor = editorRef.current;
-      const position = editor.getPosition();
-      const model = editor.getModel();
-      if (model) {
-        model.setValue(editorValue);
-        if (position) {
-          editor.setPosition(position);
-          editor.revealPositionInCenter(position);
-        }
-      }
-    } else if (activeTab === "css" && cssEditorRef.current) {
-      const editor = cssEditorRef.current;
-      const position = editor.getPosition();
-      const model = editor.getModel();
-      if (model) {
-        model.setValue(cssValue);
-        if (position) {
-          editor.setPosition(position);
-          editor.revealPositionInCenter(position);
-        }
-      }
-    }
-  }, [activeTab, editorValue, cssValue]);
+    updateEditorContent();
+  }, [activeTab, updateEditorContent]);
 
-  const handleEditorBeforeMount = async (monaco: Monaco) => {
-    await getHighlighter({
-      themes: ["vitesse-dark", "vitesse-light"],
-      langs: ["typescript", "javascript"],
-    });
-    await setupLanguageService(monaco);
-  };
-
-  const handleEditorDidMount: OnMount = (editor, monaco) => {
-    editorRef.current = editor;
-    monacoRef.current = monaco;
-    const uri = monaco.Uri.file(
-      editorOptions.language === "javascript" ? "index.jsx" : "index.tsx",
-    );
-    let model = monaco.editor.getModel(uri);
-    if (!model) {
-      model = monaco.editor.createModel(
-        editorValue,
-        editorOptions.language,
-        uri,
-      );
-    }
-    editor.setModel(model);
-  };
-
-  const handleEditorCssDidMount: OnMount = (editor, monaco) => {
-    cssEditorRef.current = editor;
-    const uri = monaco.Uri.file("index.css");
-    let model = monaco.editor.getModel(uri);
-    if (!model) {
-      model = monaco.editor.createModel(cssValue, "css", uri);
-    }
-    editor.setModel(model);
-  };
-
-  const handleJsEditorChange: OnChange = (value, event) => {
-    if (editorRef.current) {
-      debouncedHandleEditorChange(
-        value ?? "",
-        editorOptions.language,
-        editorRef.current,
-      );
-    }
-  };
-
-  const handleCssEditorChange: OnChange = (value, event) => {
-    if (cssEditorRef.current) {
-      debouncedHandleEditorChange(value ?? "", "css", cssEditorRef.current);
-    }
-  };
+  const handleEditorContentChange: OnChange = useCallback(
+    (value, event) => {
+      const language = activeTab === "main" ? editorOptions.language : "css";
+      storeHandleEditorChange(value ?? "", language);
+    },
+    [activeTab, editorOptions.language, storeHandleEditorChange],
+  );
 
   return (
     <div className="w-full h-full">
@@ -378,13 +377,16 @@ function CodeRepoEditorPreview({
             >
               <ResizablePanel defaultSize={50}>
                 <ScrollArea className="flex min-h-screen h-full items-center justify-center">
-                  <TabsContent value="main" className="w-full h-full">
+                  <div
+                    className="w-full h-full"
+                    style={{ display: activeTab === "main" ? "block" : "none" }}
+                  >
                     <Editor
                       height="100vh"
                       language={editorOptions.language}
                       value={editorValue}
                       beforeMount={handleEditorBeforeMount}
-                      onChange={handleJsEditorChange}
+                      onChange={handleEditorContentChange}
                       theme={editorOptions.theme}
                       options={{
                         fontSize: editorOptions.fontSize,
@@ -392,16 +394,20 @@ function CodeRepoEditorPreview({
                         minimap: editorOptions.minimap,
                         lineNumbers: editorOptions.lineNumbers,
                       }}
-                      onMount={handleEditorDidMount}
+                      onMount={handleJsEditorDidMount}
+                      key={`js-editor-${repoId}`} // Add key to force remount
                     />
-                  </TabsContent>
-                  <TabsContent value="css" className="w-full h-full">
+                  </div>
+                  <div
+                    className="w-full h-full"
+                    style={{ display: activeTab === "css" ? "block" : "none" }}
+                  >
                     <Editor
                       height="100vh"
                       language="css"
                       value={cssValue}
                       beforeMount={handleEditorBeforeMount}
-                      onChange={handleCssEditorChange}
+                      onChange={handleEditorContentChange}
                       theme={editorOptions.theme}
                       options={{
                         fontSize: editorOptions.fontSize,
@@ -409,16 +415,25 @@ function CodeRepoEditorPreview({
                         minimap: editorOptions.minimap,
                         lineNumbers: editorOptions.lineNumbers,
                       }}
-                      onMount={handleEditorCssDidMount}
+                      onMount={handleCssEditorDidMount}
+                      key={`css-editor-${repoId}`} // Add key to force remount
                     />
-                  </TabsContent>
+                  </div>
                 </ScrollArea>
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50}>
                 <div className="bg-slate-950 min-h-screen relative">
                   <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]">
-                    <LivePreview className="w-full bg-black" />
+                    <IframeRenderer
+                      sourceJs={debouncedJsValue}
+                      sourceCss={debouncedCssValue}
+                      language={
+                        editorOptions.language === "javascript" ? "JSX" : "TSX"
+                      }
+                      name="preview"
+                      className="h-full z-50"
+                    />
                     <LiveError className="text-red-800 bg-red-100 mt-2" />
                   </div>
                 </div>
@@ -427,14 +442,6 @@ function CodeRepoEditorPreview({
           )}
         </ClientOnly>
       </LiveProvider>
-    </div>
-  );
-}
-
-function MonacoLoading() {
-  return (
-    <div className="flex items-center justify-center w-full h-full">
-      <Spinner />
     </div>
   );
 }
