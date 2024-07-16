@@ -16,14 +16,17 @@ export const ErrorBoundary = () => {
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   if (!checkAuthCookie(request)) return redirect("/login");
-  const res = await fetch(`${process.env.BACKEND_URL}/api/v1/payout-requests`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Cookie: cookieHeader?.toString() ?? "",
+  const res = await fetch(
+    `${process.env.BACKEND_URL}/api/v1/admin/payout-requests`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Cookie: cookieHeader?.toString() ?? "",
+      },
     },
-  });
+  );
   if (!res.ok) throw new Error("Oh no! Something went wrong!");
   const data = await res.json();
   console.log(data);

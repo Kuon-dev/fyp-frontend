@@ -218,9 +218,23 @@ const ActiveSellerComponent: React.FC = () => {
                     tickFormatter={(value) =>
                       new Date(value).toLocaleDateString()
                     }
+                    // Remove defaultProps usage
+                    height={50}
+                    interval="preserveStartEnd"
                   />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
+                  <YAxis
+                    yAxisId="left"
+                    // Remove defaultProps usage
+                    width={60}
+                    tickFormatter={(value) => `$${value}`}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    // Remove defaultProps usage
+                    width={60}
+                    tickFormatter={(value) => value.toString()}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Line

@@ -81,6 +81,11 @@ export const sidebarLinks: RoleSidebarLinks = {
       icon: <ShoppingCart className="h-5 w-5" />,
       tooltip: "Your orders",
     },
+    {
+      to: "/app/seller/payouts",
+      icon: <DollarSign className="h-5 w-5" />,
+      tooltip: "Payouts",
+    },
   ],
   buyer: commonLinks,
 };

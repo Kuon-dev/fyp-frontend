@@ -13,7 +13,7 @@ export default function ErrorComponent() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 px-4 dark:bg-gray-900">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 px-4 dark:bg-muted/40">
       <div className="mx-auto max-w-md text-center">
         <h1 className="text-6xl font-bold text-gray-900 dark:text-gray-50">
           500
