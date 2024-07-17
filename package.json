@@ -66,6 +66,7 @@
     "embla-carousel-react": "^8.0.4",
     "framer-motion": "^11.1.9",
     "husky": "^9.0.11",
+    "immer": "^10.1.1",
     "input-otp": "^1.2.4",
     "isbot": "^4.1.0",
     "lint-staged": "^15.2.2",

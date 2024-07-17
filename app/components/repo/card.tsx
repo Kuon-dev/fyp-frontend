@@ -30,8 +30,8 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
     };
 
     return (
-      <a
-        href={`${appUrl}/preview/repo/${repo.id}`}
+      <Link
+        to={`/r/${repo.id}`}
         className="block"
         target="_blank"
         rel="noopener noreferrer"
@@ -50,7 +50,7 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
               src={`${appUrl}/preview/repo/${repo.id}`}
               title={repo.name}
               width="100%"
-              className="w-full h-48 object-cover"
+              className="w-full h-64 object-cover"
               loading="lazy"
               onLoad={handleLoad}
               onError={handleError}
@@ -67,7 +67,7 @@ export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
             </p>
           </CardContent>
         </Card>
-      </a>
+      </Link>
     );
   },
 );

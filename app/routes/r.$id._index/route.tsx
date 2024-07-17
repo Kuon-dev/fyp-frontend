@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { json, useLoaderData } from "@remix-run/react";
+import { json, useLoaderData, useNavigate } from "@remix-run/react";
 import {
   SmartphoneIcon,
   StarIcon,
@@ -9,6 +9,11 @@ import {
   MaximizeIcon,
   DollarSignIcon,
   TabletIcon,
+  Code2,
+  DollarSign,
+  Clock,
+  Download,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +29,22 @@ import { LoaderFunction } from "@remix-run/node";
 import type { RepoResponse } from "@/lib/fetcher/repo";
 import { toast } from "sonner";
 import ReviewComponent from "@/components/repo/review";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { showErrorToast } from "@/lib/handle-error";
 
 export const loader: LoaderFunction = async ({ params }) => {
   const id = params.id;
   let data;
   try {
     const response = await fetch(
-      `${process.env.BACKEND_URL}/api/v1/repo/${id}`,
+      `${process.env.BACKEND_URL}/api/v1/repo/${id}/public`,
       {
         credentials: "include",
         headers: {
@@ -79,8 +93,7 @@ export default function RepoPreviewComponent() {
           <>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold mb-2">{repo.name}</h1>
-                <p className="text-slate-500">{repo.description}</p>
+                <h1 className="text-5xl font-bold mb-2">{repo.name}</h1>
                 <div className="flex items-center mt-2">
                   <DollarSignIcon className="w-4 h-4 mr-1 text-green-500" />
                   <span className="font-semibold">
@@ -89,10 +102,6 @@ export default function RepoPreviewComponent() {
                 </div>
               </div>
               <div className="flex space-x-2">
-                <Button size="sm" variant="outline">
-                  <StarIcon className="w-4 h-4 mr-2" />
-                  Star
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline">
@@ -296,11 +305,10 @@ interface CodeCheckMetrics {
   readabilityScore: number;
 }
 
-function Price() {
-  const { repo, codeCheck } = useLoaderData<{
-    repo: RepoResponse | null;
-    codeCheck: BackendCodeCheck | null;
-  }>();
+export function Price() {
+  const { repo } = useLoaderData<{ repo: RepoResponse | null }>();
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   if (!repo) {
     return <div>Repository data not available</div>;
@@ -314,77 +322,74 @@ function Price() {
     });
   };
 
-  const renderMetricBadge = (score: number, label: string) => (
-    <Badge
-      variant={
-        score > 70 ? "default" : score > 50 ? "secondary" : "destructive"
-      }
-    >
-      {label}: {score}
-    </Badge>
-  );
+  const handlePurchase = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/checkout`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ repoId: repo.id }),
+        },
+      );
+      const { clientSecret } = await response.json();
+
+      // Redirect to a payment page or show a payment modal
+      navigate(`/checkout/${clientSecret}`);
+    } catch (error) {
+      showErrorToast(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-muted/40">
-      <div className="max-w-3xl w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24">
-        <div className="space-y-6">
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              {repo.name}
-            </h1>
-            <p className="mt-3 max-w-2xl text-muted-foreground text-lg sm:text-xl">
-              {repo.description}
-            </p>
+    <div className="w-full mx-auto p-4">
+      <Card className="w-full shadow-lg">
+        <CardHeader className="pb-2">
+          <div className="flex items-center space-x-2">
+            <Code2 className="h-6 w-6 text-primary" />
+            <CardTitle className="text-2xl font-bold">{repo.name}</CardTitle>
           </div>
-          <div className="bg-background rounded-lg shadow-lg p-6 sm:p-8 lg:p-12 space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold">
-                Repository Details
-              </h2>
-              <div className="grid grid-cols-2 gap-4 text-muted-foreground text-lg sm:text-xl">
-                <div>
-                  Language: <Badge>{repo.language}</Badge>
-                </div>
-                <div>
-                  Visibility: <Badge>{repo.visibility}</Badge>
-                </div>
-                <div>
-                  Status: <Badge>{repo.status}</Badge>
-                </div>
-                <div>Created: {formatDate(repo.createdAt)}</div>
-                <div>Last Updated: {formatDate(repo.updatedAt)}</div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold">Price</h2>
-              <div className="flex items-center">
-                <DollarSignIcon className="w-8 h-8 text-primary mr-2" />
-                <span className="text-4xl sm:text-5xl font-bold text-primary">
-                  ${repo.price.toFixed(2)}
-                </span>
-              </div>
-            </div>
-            {codeCheck && (
-              <div className="space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-bold">
-                  Code Quality Metrics
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {renderMetricBadge(codeCheck.securityScore, "Security")}
-                  {renderMetricBadge(
-                    codeCheck.maintainabilityScore,
-                    "Maintainability",
-                  )}
-                  {renderMetricBadge(codeCheck.readabilityScore, "Readability")}
-                </div>
-                <p className="text-muted-foreground text-lg sm:text-xl mt-2">
-                  {codeCheck.overallDescription}
-                </p>
-              </div>
-            )}
+          <CardDescription className="mt-2 text-base">
+            {repo.description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="flex flex-wrap justify-between items-center mb-4">
+            <Badge variant="outline" className="text-sm px-3 py-1">
+              {repo.language}
+            </Badge>
+            <Badge className="text-sm px-3 py-1">{repo.status}</Badge>
           </div>
-        </div>
-      </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 text-gray-500 mr-2" />
+              <span>Created {formatDate(repo.createdAt)}</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-center bg-primary/10 rounded-lg p-4">
+            <DollarSign className="h-10 w-10 text-primary mr-2" />
+            <span className="text-5xl font-bold text-primary">
+              ${repo.price.toFixed(2)}
+            </span>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-center pt-4">
+          <Button
+            size="lg"
+            className="w-full sm:w-auto"
+            onClick={handlePurchase}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : "Purchase Now"}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
