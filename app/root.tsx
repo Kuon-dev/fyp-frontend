@@ -28,7 +28,6 @@ import sonnerStyles from "@/../styles/sonner.css?url";
 // Define static and dynamic routes
 const noCheckRoutes = new Set([
   "/login",
-  "",
   "/forgot-password",
   "/reset-password",
 ]);
@@ -74,7 +73,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const currentRoute = url.pathname;
 
   return json({
-    checkUser: requiresAuth(currentRoute),
+    checkUser: requiresAuth(currentRoute) ?? false,
     showBanner: !cookie.accepted,
     ENV: {
       BACKEND_URL: process.env.BACKEND_URL,
@@ -117,10 +116,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { checkLoginStatus } = useUserStore();
 
   useEffect(() => {
-    if (data.checkUser) {
+    if (data?.checkUser) {
       checkLoginStatus();
     }
-  }, [data.checkUser, checkLoginStatus]);
+  }, [data?.checkUser, checkLoginStatus]);
 
   return (
     <html lang="en">

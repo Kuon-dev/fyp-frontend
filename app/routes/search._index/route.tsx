@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -55,6 +55,7 @@ type SearchFilterSchemaType = z.infer<typeof SearchFilterSchema>;
 const SearchComponent: React.FC = () => {
   const { searchCriteria, setSearchCriteria, resetSearch, setIsLoading } =
     useSearchStore();
+  const [tagInput, setTagInput] = useState("");
 
   const form = useForm<SearchFilterSchemaType>({
     resolver: zodResolver(SearchFilterSchema),
@@ -75,14 +76,13 @@ const SearchComponent: React.FC = () => {
     });
 
     try {
-      const queryParams = new URLSearchParams({
-        ...(data.searchQuery && { query: data.searchQuery }),
-        ...(data.tags?.length && { tags: data.tags.join(",") }),
-        ...(data.language && { language: data.language }),
-      }).toString();
+      const queryParams = new URLSearchParams();
+      if (data.searchQuery) queryParams.append("query", data.searchQuery);
+      data.tags?.forEach((tag) => queryParams.append("tags", tag));
+      if (data.language) queryParams.append("language", data.language);
 
       const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/repos/search?${queryParams}`,
+        `${window.ENV.BACKEND_URL}/api/v1/repos/search?${queryParams.toString()}`,
         { method: "GET" },
       );
 
@@ -100,6 +100,16 @@ const SearchComponent: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const addTag = (tag: string) => {
+    const trimmedTag = tag.trim();
+    if (trimmedTag && !form.getValues("tags")?.includes(trimmedTag)) {
+      const updatedTags = [...(form.getValues("tags") || []), trimmedTag];
+      form.setValue("tags", updatedTags);
+      setSearchCriteria({ tags: updatedTags });
+    }
+    setTagInput("");
   };
 
   const removeTag = (tag: string) => {
@@ -132,19 +142,26 @@ const SearchComponent: React.FC = () => {
               <FormItem>
                 <FormLabel>Tags</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value?.join(", ") || ""}
-                    onChange={(e) => {
-                      const tags = e.target.value
-                        .split(",")
-                        .map((tag) => tag.trim())
-                        .filter(Boolean);
-                      field.onChange(tags);
-                      setSearchCriteria({ tags });
-                    }}
-                    placeholder="Enter tags separated by commas"
-                  />
+                  <div className="flex items-center">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          addTag(tagInput);
+                        }
+                      }}
+                      placeholder="Enter a tag and press Enter"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => addTag(tagInput)}
+                      className="ml-2"
+                    >
+                      Add Tag
+                    </Button>
+                  </div>
                 </FormControl>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {field.value?.map((tag, index) => (

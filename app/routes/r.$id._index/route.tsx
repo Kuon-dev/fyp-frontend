@@ -38,6 +38,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { showErrorToast } from "@/lib/handle-error";
+import { useCheckoutStore } from "@/stores/checkout-store";
 
 export const loader: LoaderFunction = async ({ params }) => {
   const id = params.id;
@@ -307,8 +308,8 @@ interface CodeCheckMetrics {
 
 export function Price() {
   const { repo } = useLoaderData<{ repo: RepoResponse | null }>();
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { clientSecret, handlePurchase, isLoading } = useCheckoutStore();
 
   if (!repo) {
     return <div>Repository data not available</div>;
@@ -322,28 +323,16 @@ export function Price() {
     });
   };
 
-  const handlePurchase = async () => {
-    setIsLoading(true);
+  const onPurchaseClick = async () => {
     try {
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/checkout`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ repoId: repo.id }),
-        },
-      );
-      const { clientSecret } = await response.json();
-
-      // Redirect to a payment page or show a payment modal
-      navigate(`/checkout/${clientSecret}`);
+      const success = await handlePurchase(repo.id);
+      if (success) {
+        if (clientSecret) navigate(`/checkout/${clientSecret}`);
+      } else {
+        throw new Error("Failed to initialize checkout");
+      }
     } catch (error) {
       showErrorToast(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -383,7 +372,7 @@ export function Price() {
           <Button
             size="lg"
             className="w-full sm:w-auto"
-            onClick={handlePurchase}
+            onClick={onPurchaseClick}
             disabled={isLoading}
           >
             {isLoading ? "Processing..." : "Purchase Now"}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { injectCSS } from "@/integrations/monaco/inject-css";
-import { getRepoByIdPublic } from "@/lib/fetcher/repo";
 import { LoaderFunction, redirect, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live";
@@ -16,8 +15,6 @@ export const loader: LoaderFunction = async ({ params }) => {
     },
   );
   const data = await response.json();
-
-  console.log(data);
   return json({
     repo: data.repo,
   });

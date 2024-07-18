@@ -123,11 +123,11 @@ importers:
         specifier: ^2.6.2
         version: 2.6.2
       '@stripe/react-stripe-js':
-        specifier: ^2.7.1
-        version: 2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^2.7.3
+        version: 2.7.3(@stripe/stripe-js@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@stripe/stripe-js':
-        specifier: ^4.0.0
-        version: 4.0.0
+        specifier: ^4.1.0
+        version: 4.1.0
       '@tabler/icons-react':
         specifier: ^3.3.0
         version: 3.4.0(react@18.3.1)
@@ -1942,15 +1942,15 @@ packages:
   '@shikijs/monaco@1.6.2':
     resolution: {integrity: sha512-0X/ud3naqebORTkXdC2dKNM3ymxMKxGBaS+H2qlWEG4O+UfEhdYdN9BFNFVibGwcnAft4dNNW+fIimYgBhZUpw==}
 
-  '@stripe/react-stripe-js@2.7.1':
-    resolution: {integrity: sha512-/i13alp27HaSBbMM6kW0jhy8KqdtOL1T/EcRjFjfhvt+CBtMEg8TD7y28W3oZG0+OBDdCyGGnXgNgrKPYQH40g==}
+  '@stripe/react-stripe-js@2.7.3':
+    resolution: {integrity: sha512-05t6oY7cmAJt7asknmeoI4z4GnutgKRZ7dcdTWCkeYclONzIRMuMTiyjBMQ/q3I2sdNizSl25YZ8G6Lg4nN1aw==}
     peerDependencies:
-      '@stripe/stripe-js': ^1.44.1 || ^2.0.0 || ^3.0.0
+      '@stripe/stripe-js': ^1.44.1 || ^2.0.0 || ^3.0.0 || ^4.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
 
-  '@stripe/stripe-js@4.0.0':
-    resolution: {integrity: sha512-R5zewuzTVPGn4dXkavbgDk8vSILkT5hRlzga10p6JzngR17qKi1fgc27kl58TmaVvgBZGngTRNH2j9kYdvfPGA==}
+  '@stripe/stripe-js@4.1.0':
+    resolution: {integrity: sha512-HhstGRUz/4JdbZpb26OcOf8Qb/cFR02arvHvgz4sPFLSnI6ZNHC53Jc6JP/FGNwxtrF719YyUnK0gGy4oyhucQ==}
     engines: {node: '>=12.16'}
 
   '@tabler/icons-react@3.4.0':
@@ -6880,14 +6880,14 @@ snapshots:
     dependencies:
       '@shikijs/core': 1.6.2
 
-  '@stripe/react-stripe-js@2.7.1(@stripe/stripe-js@4.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@stripe/react-stripe-js@2.7.3(@stripe/stripe-js@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@stripe/stripe-js': 4.0.0
+      '@stripe/stripe-js': 4.1.0
       prop-types: 15.8.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@stripe/stripe-js@4.0.0': {}
+  '@stripe/stripe-js@4.1.0': {}
 
   '@tabler/icons-react@3.4.0(react@18.3.1)':
     dependencies:
