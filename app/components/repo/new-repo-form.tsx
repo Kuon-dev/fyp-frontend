@@ -51,7 +51,7 @@ export function RepoForm({ defaultValues }: RepoFormProps) {
   const onSubmit = async (data: NewRepoSchemaType) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${window.ENV.BACKEND_URL}/api/v1/repos`, {
+      const response = await fetch(`${window.ENV.BACKEND_URL}/api/v1/repo`, {
         credentials: "include",
         method: "POST",
         headers: {

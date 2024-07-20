@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { showErrorToast } from "@/lib/handle-error";
 import { toast } from "sonner";
+import { useNavigate } from "@remix-run/react";
 
 // Define the schema for the order
 const orderSchema = z.object({
@@ -72,44 +73,47 @@ interface DialogProps {
   onAction: (action: string) => Promise<void>;
 }
 
-const ProcessOrderDialog: React.FC<DialogProps> = ({
+const ViewOrderDialog: React.FC<DialogProps> = ({
   order,
   onClose,
   onAction,
 }) => {
-  const { user, codeRepo, totalAmount, status } = order;
+  const { codeRepo, totalAmount, status, createdAt } = order;
 
   return (
     <>
       <AlertDialogHeader>
-        <AlertDialogTitle>Process Order</AlertDialogTitle>
+        <AlertDialogTitle>Order Details</AlertDialogTitle>
         <AlertDialogDescription>
-          Please review the following information before processing the order
-          for ${totalAmount.toFixed(2)}.
+          View the details of your order.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <div className="my-4">
         <h3 className="font-semibold mb-2">Order Information:</h3>
-        <p>User Email: {user.email}</p>
-        <p>Code Repo: {codeRepo.name}</p>
-        <p>Status: {status}</p>
+        <p>Code Repository: {codeRepo.name}</p>
         <p>Total Amount: ${totalAmount.toFixed(2)}</p>
+        <p>Status: {status}</p>
+        <p>Order Date: {new Date(createdAt).toLocaleString()}</p>
       </div>
-      <AlertDialogDescription className="mt-4 text-sm text-gray-500">
-        Note: This action will update the order status. Please ensure all
-        necessary checks have been performed.
-      </AlertDialogDescription>
       <AlertDialogFooter>
-        <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-        <AlertDialogAction onClick={() => onAction("approve")}>
-          Approve Order
-        </AlertDialogAction>
-        <AlertDialogAction
-          onClick={() => onAction("cancel")}
-          className="bg-red-600 hover:bg-red-700"
-        >
-          Cancel Order
-        </AlertDialogAction>
+        <AlertDialogCancel onClick={onClose}>Close</AlertDialogCancel>
+        {status === "REQUIRESPAYMENTMETHOD" && (
+          <AlertDialogAction onClick={() => onAction("pay")}>
+            Complete Payment
+          </AlertDialogAction>
+        )}
+        {[
+          "REQUIRESPAYMENTMETHOD",
+          "REQUIRESCONFIRMATION",
+          "REQUIRESACTION",
+        ].includes(status) && (
+          <AlertDialogAction
+            onClick={() => onAction("cancel")}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Cancel Order
+          </AlertDialogAction>
+        )}
       </AlertDialogFooter>
     </>
   );
@@ -125,20 +129,34 @@ export function OrderTableRowActions<TData>({
   tableSchema,
 }: DataTableRowActionsProps<TData>) {
   const order = tableSchema.parse(row.original);
+  const nav = useNavigate();
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
 
   const handleAction = async (action: string) => {
     try {
-      const url = `${window.ENV.BACKEND_URL}/api/v1/orders/${order.id}`;
+      /* eslint-disable */
+      let url = `${window.ENV.BACKEND_URL}/api/v1/orders/${order.id}`;
+      let method = "PUT";
+      let body: { status?: string } = {};
+      /* eslint-enable */
+
+      if (action === "pay") {
+        nav(`/checkout/${order.stripePaymentIntentId}`);
+        // Redirect to payment page or open payment modal
+        // This is a placeholder and should be replaced with actual payment logic
+        toast.info("Redirecting to payment page...");
+        return;
+      } else if (action === "cancel") {
+        body.status = "CANCELLED";
+      }
+
       const res = await fetch(url, {
-        method: "PUT",
+        method,
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          status: action === "approve" ? "SUCCEEDED" : "CANCELLED",
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -146,7 +164,7 @@ export function OrderTableRowActions<TData>({
       }
 
       toast.success(
-        `Order ${action === "approve" ? "approved" : "cancelled"} successfully`,
+        `Order ${action === "cancel" ? "cancelled" : "updated"} successfully`,
       );
       window.location.reload();
     } catch (e) {
@@ -156,9 +174,9 @@ export function OrderTableRowActions<TData>({
 
   const renderDialogContent = () => {
     switch (activeDialog) {
-      case "process":
+      case "view":
         return (
-          <ProcessOrderDialog
+          <ViewOrderDialog
             order={order}
             onClose={() => setActiveDialog(null)}
             onAction={handleAction}
@@ -185,14 +203,21 @@ export function OrderTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem
-            onClick={() => setActiveDialog("process")}
-            disabled={
-              order.status === "SUCCEEDED" || order.status === "CANCELLED"
-            }
-          >
-            Process Order
+          <DropdownMenuItem onClick={() => setActiveDialog("view")}>
+            View Order
           </DropdownMenuItem>
+          {order.status === "REQUIRESACTION" && (
+            <DropdownMenuItem onClick={() => handleAction("pay")}>
+              Complete Payment
+            </DropdownMenuItem>
+          )}
+          {["REQUIRESPAYMENTMETHOD", "REQUIRESCONFIRMATION"].includes(
+            order.status,
+          ) && (
+            <DropdownMenuItem onClick={() => handleAction("cancel")}>
+              Cancel Order
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -202,30 +227,6 @@ export function OrderTableRowActions<TData>({
 }
 
 export const columns: ColumnDef<OrderSchema>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     id: "email",
     accessorKey: "user.email",

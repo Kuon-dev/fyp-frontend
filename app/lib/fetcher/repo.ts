@@ -157,7 +157,7 @@ export const updateRepo = async (
   data: UpdateRepoData,
 ): Promise<RepoResponse | null> => {
   try {
-    const response = await fetch(`${backendURL}/api/v1/repos/${id}`, {
+    const response = await fetch(`${backendURL}/api/v1/repo/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

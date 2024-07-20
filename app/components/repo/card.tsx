@@ -11,15 +11,8 @@ interface RepoCardProps {
 
 export const RepoCard = forwardRef<HTMLDivElement, RepoCardProps>(
   ({ repo }, ref) => {
-    const [dialogOpen, setDialogOpen] = React.useState(false);
-    //const [name, setName] = React.useState(repo.name);
-    //const [description, setDescription] = React.useState(repo.description);
     const [loading, setLoading] = React.useState(true);
     const appUrl = window.ENV.APP_URL;
-
-    const handleSave = () => {
-      setDialogOpen(false);
-    };
 
     const handleLoad = () => {
       setLoading(false);

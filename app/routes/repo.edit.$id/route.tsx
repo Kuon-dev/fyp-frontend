@@ -35,7 +35,7 @@ import { Link, useParams } from "@remix-run/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import debounce from "lodash/debounce";
 
-const setupLanguageService = async (monaco: Monaco) => {
+export const setupLanguageService = async (monaco: Monaco) => {
   const compilerOptions = {
     allowJs: true,
     allowNonTsExtensions: true,
