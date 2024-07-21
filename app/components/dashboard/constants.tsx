@@ -9,7 +9,6 @@ import {
   MessageSquare,
   Star,
   FileCode,
-  Building,
 } from "lucide-react";
 
 export interface SidebarLink {
