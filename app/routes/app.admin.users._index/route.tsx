@@ -8,9 +8,7 @@ import { useLoaderData, useRouteError } from "@remix-run/react";
 import ErrorComponent from "@/components/error/500";
 import { checkAuthCookie } from "@/lib/router-guard";
 
-// import { Clie}
 export const ErrorBoundary = () => {
-  const error = useRouteError();
   return <ErrorComponent />;
 };
 

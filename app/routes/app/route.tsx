@@ -42,7 +42,7 @@ export default function DashboardLayout() {
   React.useEffect(() => {
     if (user?.user?.role) {
       setCurrentSidebarLinks(
-        sidebarLinks[user.user.role.toLowerCase()] || sidebarLinks.buyer,
+        sidebarLinks[user.user.role.toUpperCase()] || sidebarLinks.buyer,
       );
     }
   }, [user]);
