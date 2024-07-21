@@ -22,6 +22,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { ContextMenuContent } from "@/components/ui/context-menu";
 import { showErrorToast } from "@/lib/handle-error";
 import { toast } from "sonner";
 
@@ -31,6 +32,8 @@ export const reviewSchema = z.object({
   content: z.string(),
   userId: z.string(),
   flag: z.string(),
+  upvotes: z.number(),
+  downvotes: z.number(),
 });
 
 export type ReviewSchema = z.infer<typeof reviewSchema>;
@@ -260,6 +263,26 @@ export const columns: ColumnDef<ReviewSchema>[] = [
           {content}
         </div>
       );
+    },
+  },
+  {
+    accessorKey: "upvotes",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Upvotes" />
+    ),
+    cell: ({ row }) => {
+      const upvotes: number = row.getValue("upvotes");
+      return <div className="text-green-500">{upvotes}</div>;
+    },
+  },
+  {
+    accessorKey: "downvotes",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Downvotes" />
+    ),
+    cell: ({ row }) => {
+      const downvotes: number = row.getValue("downvotes");
+      return <div className="text-red-500">{downvotes}</div>;
     },
   },
   {
