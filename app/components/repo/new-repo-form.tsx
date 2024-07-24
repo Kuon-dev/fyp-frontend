@@ -64,6 +64,7 @@ export function RepoForm({ defaultValues }: RepoFormProps) {
         throw new Error(res.message);
       }
       toast("Project created successfully.");
+      window.location.reload();
     } catch (error) {
       console.error(error);
       toast(`An error occurred. ${(error as Error).message}`);

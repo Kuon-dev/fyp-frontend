@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { injectCSS } from "@/integrations/monaco/inject-css";
-import { LoaderFunction, redirect, json } from "@remix-run/node";
+import { LoaderFunction, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { LiveProvider, LiveEditor, LiveError, LivePreview } from "react-live";
+import { LiveProvider, LivePreview } from "react-live";
 
 export const loader: LoaderFunction = async ({ params }) => {
   const id = params.id;
   const response = await fetch(
-    `${process.env.BACKEND_URL}/api/v1/repo/${id}/public`,
+    `${process.env.BACKEND_URL}/api/v1/repo/${id}/server`,
     {
       headers: {
         "Content-Type": "application/json",

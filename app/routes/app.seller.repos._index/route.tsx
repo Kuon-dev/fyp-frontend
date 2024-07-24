@@ -34,7 +34,7 @@ const repoSchema = z.object({
   visibility: z.enum(["public", "private"]),
   status: z.enum(["pending", "active", "rejected"]),
   name: z.string(),
-  description: z.string(),
+  description: z.string().nullable(),
   language: z.enum(["JSX", "TSX"]),
   price: z.number(),
 });
@@ -53,10 +53,10 @@ export const loader: LoaderFunction = async ({ request }) => {
       Cookie: cookieHeader?.toString() ?? "",
     },
   });
-
   if (!res.ok) throw new Error("Failed to fetch repositories");
 
   const data = await res.json();
+  console.log(data);
   const validatedData = z.array(repoSchema).parse(data);
 
   return json({
@@ -79,7 +79,7 @@ export default function RepoDashboard() {
   const filteredRepos = repos.filter(
     (repo) =>
       repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repo.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      repo.description?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleDelete = async (id: string) => {

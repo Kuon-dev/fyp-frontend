@@ -1,11 +1,4 @@
-import {
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  Suspense,
-} from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { injectCSS, injectTailwind } from "@/integrations/monaco/inject-css";
 import { toast } from "sonner";
 import {
@@ -14,10 +7,10 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMonacoStore } from "@/stores/monaco-store";
 import type { OnChange, OnMount } from "@monaco-editor/react";
-import { LiveProvider, LivePreview, LiveError } from "react-live";
+import { LiveProvider, LiveError } from "react-live";
 import Editor, { loader as monacoLoader } from "@monaco-editor/react";
 import type {
   IStandaloneCodeEditor,
@@ -33,6 +26,22 @@ import { EditorMenubar } from "@/components/repo/editor-menubar";
 import { MonacoLoading } from "@/components/repo/loading";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { Repo } from "@/components/repo/card-repo-seller";
+import {
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+import { setupLanguageService } from "@/integrations/monaco/native.utils";
+import { readStream } from "@/lib/utils";
+import CodeAnalysis, {
+  PrivateCodeCheckResult,
+} from "@/components/repo/code-analysis";
 
 monacoLoader.config({
   paths: {
@@ -41,14 +50,18 @@ monacoLoader.config({
 });
 
 // Add Remix loader
-export const loader: LoaderFunction = async ({ params }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
   const { id } = params;
   if (!id) {
     throw new Response("Not Found", { status: 404 });
   }
+  const cookieHeader = request.headers.get("Cookie");
 
   const response = await fetch(`${process.env.BACKEND_URL}/api/v1/repo/${id}`, {
     credentials: "include",
+    headers: {
+      Cookie: cookieHeader?.toString() || "",
+    },
   });
 
   if (!response.ok) {
@@ -56,8 +69,26 @@ export const loader: LoaderFunction = async ({ params }) => {
   }
 
   const data = await response.json();
+
+  // Fetch code analysis data
+  const analysisResponse = await fetch(
+    `${process.env.BACKEND_URL}/api/v1/code-analysis/${id}`,
+    {
+      credentials: "include",
+      headers: {
+        Cookie: cookieHeader?.toString() || "",
+      },
+    },
+  );
+
+  let codeAnalysis = null;
+  if (analysisResponse.ok) {
+    codeAnalysis = await analysisResponse.json();
+  }
+
   return json({
     repo: data.repo,
+    codeAnalysis: codeAnalysis,
   });
 };
 
@@ -76,76 +107,60 @@ export function ErrorBoundary() {
   );
 }
 
-const setupLanguageService = async (monaco: Monaco) => {
-  const compilerOptions = {
-    allowJs: true,
-    allowNonTsExtensions: true,
-    esModuleInterop: true,
-    isolatedModules: true,
-    jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
-    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-    noEmit: true,
-    skipLibCheck: true,
-    target: monaco.languages.typescript.ScriptTarget.Latest,
-    typeRoots: ["node_modules/@types"],
-    jsxFactory: "React.createElement",
-    jsxFragmentFactory: "React.Fragment",
-  };
+// PublishAlertDialog component
+type PublishAlertDialogProps = {
+  isOpen: boolean;
+  isPublishing: boolean;
+  publishProgress: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
 
-  // Set up for both JavaScript and TypeScript
-  [
-    monaco.languages.typescript.javascriptDefaults,
-    monaco.languages.typescript.typescriptDefaults,
-  ].forEach((defaults) => {
-    defaults.setCompilerOptions(compilerOptions);
-    defaults.setEagerModelSync(true);
-  });
-
-  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: false,
-    noSyntaxValidation: false,
-  });
-
-  // Fetch and add React types
-  try {
-    const response = await fetch(
-      "https://unpkg.com/@types/react@18.0.27/index.d.ts",
-    );
-    const reactTypes = await response.text();
-    const reactLiveTypes = `declare module 'react-dom' {
-      export const render: (props: any) => any;
-    }`;
-    const reactJSXRuntime = `declare module 'react/jsx-runtime' {
-      export default any;
-    }`;
-
-    [
-      monaco.languages.typescript.javascriptDefaults,
-      monaco.languages.typescript.typescriptDefaults,
-    ].forEach((defaults) => {
-      defaults.addExtraLib(
-        reactTypes,
-        "file:///node_modules/@types/react/index.d.ts",
-      );
-      defaults.addExtraLib(
-        reactLiveTypes,
-        "file:///node_modules/@types/react-dom/index.d.ts",
-      );
-      defaults.addExtraLib(
-        reactJSXRuntime,
-        "file:///node_modules/@types/react/jsx-runtime/index.d.ts",
-      );
-    });
-  } catch (error) {
-    console.error("Failed to fetch React types:", error);
-  }
+const PublishAlertDialog: React.FC<PublishAlertDialogProps> = ({
+  isOpen,
+  isPublishing,
+  publishProgress,
+  onConfirm,
+  onCancel,
+}) => {
+  return (
+    <AlertDialog open={isOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Publish Repository</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to publish this repository? This action will
+            make the repository visible to all users and cannot be undone.
+          </AlertDialogDescription>
+          {isPublishing && (
+            <Progress value={publishProgress} className="w-full mt-4" />
+          )}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onCancel} disabled={isPublishing}>
+            {isPublishing ? "Cancel Upload" : "Cancel"}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} disabled={isPublishing}>
+            Publish
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 };
 
 export default function EditorLayout() {
-  const { repo } = useLoaderData<{ repo: Repo }>();
-  const { id: repoId } = useParams();
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("main");
+  const { repo, codeAnalysis } = useLoaderData<{
+    repo: Repo;
+    codeAnalysis: PrivateCodeCheckResult | null;
+  }>();
+  const { id: repoId } = useParams<{ id: string }>();
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [publishProgress, setPublishProgress] = useState<number>(0);
+  const [showPublishDialog, setShowPublishDialog] = useState<boolean>(false);
+  const [showCodeAnalysis, setShowCodeAnalysis] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>("main");
   const {
     editorValue,
     cssValue,
@@ -155,7 +170,8 @@ export default function EditorLayout() {
     setEditorOptions,
   } = useMonacoStore();
 
-  // Reset the store when the component mounts or when the repo ID changes
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     const initializeEditor = () => {
       setEditorValue(repo.sourceJs);
@@ -202,6 +218,58 @@ export default function EditorLayout() {
     }
   };
 
+  const handlePublish = async (): Promise<void> => {
+    setIsPublishing(true);
+    setPublishProgress(0);
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/repo/${repo.id}/publish`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          signal: abortControllerRef.current.signal,
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to publish repository");
+      }
+
+      const reader = response.body!.getReader();
+      await readStream(reader, (progress) => {
+        setPublishProgress(progress);
+      });
+
+      toast.success("Repository published successfully");
+      window.location.reload();
+      // Update local state or refetch data as needed
+    } catch (error) {
+      if ((error as any).name === "AbortError") {
+        toast.info("Upload cancelled");
+      } else {
+        console.error("Error publishing repository:", error);
+        toast.error("Failed to publish repository. Please try again.");
+      }
+    } finally {
+      setIsPublishing(false);
+      setShowPublishDialog(false);
+      setPublishProgress(0);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleCancelPublish = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setShowPublishDialog(false);
+  };
+
   return (
     <Layout>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="">
@@ -212,13 +280,25 @@ export default function EditorLayout() {
 
           <div className="flex flex-row gap-4">
             <TabsList className="grid w-[400px] grid-cols-2">
-              <TabsTrigger value="main">index</TabsTrigger>
+              <TabsTrigger value="main">react</TabsTrigger>
               <TabsTrigger value="css">css</TabsTrigger>
             </TabsList>
             <EditorMenubar />
 
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving || isPublishing}>
               Save
+            </Button>
+            <Button
+              onClick={() => setShowPublishDialog(true)}
+              disabled={isSaving || isPublishing || repo.status === "active"}
+            >
+              Publish
+            </Button>
+            <Button
+              onClick={() => setShowCodeAnalysis(true)}
+              disabled={!codeAnalysis}
+            >
+              View Code Analysis
             </Button>
           </div>
         </LayoutHeader>
@@ -227,10 +307,27 @@ export default function EditorLayout() {
             repoId={repoId}
             initialCode={repo.sourceJs}
             initialCss={repo.sourceCss}
-            activeTab={activeTab}
+            activeTab={activeTab as "main" | "css"}
           />
         </LayoutBody>
       </Tabs>
+      <PublishAlertDialog
+        isOpen={showPublishDialog}
+        isPublishing={isPublishing}
+        publishProgress={publishProgress}
+        onConfirm={handlePublish}
+        onCancel={handleCancelPublish}
+      />
+      {codeAnalysis && (
+        <CodeAnalysis
+          isOpen={showCodeAnalysis}
+          onClose={() => setShowCodeAnalysis(false)}
+          codeCheckResult={codeAnalysis}
+          repoName={repo.name}
+          repoLanguage={repo.language}
+          isPublicView={false}
+        />
+      )}
     </Layout>
   );
 }

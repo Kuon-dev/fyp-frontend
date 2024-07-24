@@ -22,6 +22,8 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [debug, setDebug] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [key, setKey] = useState(0);
 
   const logDebug = useCallback((message: string) => {
     console.log(message);
@@ -35,9 +37,13 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
           transforms: ["jsx", "typescript"],
           production: true,
         });
+        setError(null);
         return result.code;
       } catch (error) {
-        logDebug("Error transforming code: " + error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        logDebug("Error transforming code: " + errorMessage);
+        setError(errorMessage);
         return null;
       }
     },
@@ -110,6 +116,10 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
   }, [sourceJs, language, logDebug, transformCode, debouncedUpdateIframe]);
 
   useEffect(() => {
+    setKey((prevKey) => prevKey + 1);
+  }, [sourceJs, sourceCss]);
+
+  useEffect(() => {
     if (iframeRef.current) {
       const iframeContent = `
         <!DOCTYPE html>
@@ -144,7 +154,7 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
               window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
             </script>
           </head>
-          <body>
+          <body class="h-full">
             <div id="root"></div>
           </body>
         </html>
@@ -152,7 +162,7 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
       iframeRef.current.srcdoc = iframeContent;
       logDebug("Iframe content initialized");
     }
-  }, [sourceCss, logDebug]);
+  }, [sourceCss, logDebug, key]);
 
   const containerClass = cn(
     "relative border rounded overflow-hidden",
@@ -162,12 +172,22 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
 
   return (
     <div className={containerClass}>
-      <iframe
-        ref={iframeRef}
-        className="w-full h-full"
-        title={name}
-        sandbox="allow-scripts allow-popups allow-same-origin"
-      />
+      {error ? (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-red-100 text-red-800 p-4">
+          <div>
+            <h3 className="font-bold mb-2">Transformation Error:</h3>
+            <pre className="text-sm whitespace-pre-wrap">{error}</pre>
+          </div>
+        </div>
+      ) : (
+        <iframe
+          key={key}
+          ref={iframeRef}
+          className="w-full h-full"
+          title={name}
+          sandbox="allow-scripts allow-popups allow-same-origin"
+        />
+      )}
       <pre className="mt-4 p-2 bg-gray-100 text-xs whitespace-pre-wrap">
         {debug}
       </pre>
@@ -175,7 +195,6 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
   );
 };
 
-// Helper functions
 function removeImports(code: string): string {
   return code.replace(/^import\s+.*?;?\s*$/gm, "");
 }
@@ -192,45 +211,5 @@ const extractComponentName = (code: string): [string, boolean, string] => {
 
   return ["", false, code];
 };
-
-//function splitIntoModules(code: string): Record<string, string> {
-//  // Implement logic to split code into modules
-//  // This is a simplified example, you may need more sophisticated parsing
-//  const modules: Record<string, string> = {};
-//  let currentModule = '';
-//  let moduleIndex = 0;
-//
-//  code.split('\n').forEach((line) => {
-//    if (line.trim().startsWith('function') || line.trim().startsWith('class')) {
-//      if (currentModule) {
-//        modules[`module${moduleIndex}`] = currentModule;
-//        moduleIndex++;
-//      }
-//      currentModule = line + '\n';
-//    } else {
-//      currentModule += line + '\n';
-//    }
-//  });
-//
-//  if (currentModule) {
-//    modules[`module${moduleIndex}`] = currentModule;
-//  }
-//
-//  return modules;
-//}
-//
-//async function transformModule(code: string, language: 'JSX' | 'TSX'): Promise<string> {
-//  try {
-//    const result = transform(code, {
-//      transforms: ['jsx', 'typescript'],
-//      production: true,
-//    });
-//    return result.code;
-//  } catch (error) {
-//    console.error('Error transforming module:', error);
-//    throw error;
-//  }
-//}
-//
 
 export default IframeRenderer;

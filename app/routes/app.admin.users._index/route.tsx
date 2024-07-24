@@ -16,6 +16,11 @@ import {
   Tooltip,
   PieChart,
   ResponsiveContainer,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  BarChart,
 } from "recharts";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { Users, UserCheck, UserX, ShieldAlert, Mail, User } from "lucide-react";
@@ -158,7 +163,7 @@ const RoleDistributionChart: React.FC<RoleDistributionChartProps> = ({
 }) => {
   const data = Object.entries(roleCounts).map(([role, count]) => ({
     name: role,
-    value: count,
+    count: count,
   }));
 
   const chartConfig: ChartConfig = Object.fromEntries(
@@ -168,32 +173,6 @@ const RoleDistributionChart: React.FC<RoleDistributionChartProps> = ({
     ]),
   );
 
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? "start" : "end"}
-        dominantBaseline="central"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -202,33 +181,29 @@ const RoleDistributionChart: React.FC<RoleDistributionChartProps> = ({
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                formatter={(value: number, name: string, props: any) => {
+                  const total = data.reduce((sum, item) => sum + item.count, 0);
+                  const percent = ((value / total) * 100).toFixed(1);
+                  return [`${value} (${percent}%)`, props.name];
+                }}
+              />
+              <Bar dataKey="count" fill="#8884d8">
                 {data.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={ROLE_COLORS[entry.name] || "#000000"}
                   />
                 ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number, name: string) => {
-                  const total = data.reduce((sum, item) => sum + item.value, 0);
-                  const percent = ((value / total) * 100).toFixed(1);
-                  return [`${value} (${percent}%)`, name];
-                }}
-              />
-              <Legend layout="vertical" align="right" verticalAlign="middle" />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>

@@ -21,7 +21,7 @@ import { Spinner } from "@/components/custom/spinner";
 import { ClientOnly } from "remix-utils/client-only";
 import { Link, useParams } from "@remix-run/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { setupLanguageService } from "../repo.edit.$id/route";
+import { setupLanguageService } from "@/integrations/monaco/native.utils";
 
 export default function ReadOnlyEditorLayout() {
   return (

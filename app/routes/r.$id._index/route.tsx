@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/card";
 import { showErrorToast } from "@/lib/handle-error";
 import { useCheckoutStore } from "@/stores/checkout-store";
+import CodeAnalysis from "@/components/repo/code-analysis";
 
 export const loader: LoaderFunction = async ({ params }) => {
   const id = params.id;
@@ -68,8 +69,9 @@ export const loader: LoaderFunction = async ({ params }) => {
 export default function RepoPreviewComponent() {
   const { repo, codeCheck } = useLoaderData<{
     repo: RepoResponse | null;
-    codeCheck: BackendCodeCheck | null;
+    codeCheck: PublicCodeCheckResult | null;
   }>();
+  const [showCodeAnalysis, setShowCodeAnalysis] = useState(false);
 
   if (!repo) {
     return <div>Repository not found</div>;
@@ -103,6 +105,13 @@ export default function RepoPreviewComponent() {
                 </div>
               </div>
               <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowCodeAnalysis(true)}
+                >
+                  View Code Analysis
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline">
@@ -134,12 +143,23 @@ export default function RepoPreviewComponent() {
             </div>
 
             <div>
-              <Price />
+              <Price repo={repo} />
             </div>
 
             <div>
               <ReviewComponent repoId={repo.id} />
             </div>
+
+            {codeCheck && (
+              <CodeAnalysis
+                isOpen={showCodeAnalysis}
+                onClose={() => setShowCodeAnalysis(false)}
+                codeCheckResult={codeCheck}
+                repoName={repo.name}
+                repoLanguage={repo.language}
+                isPublicView={true}
+              />
+            )}
           </>
         )}
       </ClientOnly>
@@ -300,20 +320,9 @@ const ResizablePanel: React.FC<ResizablePanelProps> = ({
   );
 };
 
-interface CodeCheckMetrics {
-  securityScore: number;
-  maintainabilityScore: number;
-  readabilityScore: number;
-}
-
-export function Price() {
-  const { repo } = useLoaderData<{ repo: RepoResponse | null }>();
+function Price({ repo }: { repo: RepoResponse }) {
   const navigate = useNavigate();
   const { clientSecret, handlePurchase, isLoading } = useCheckoutStore();
-
-  if (!repo) {
-    return <div>Repository data not available</div>;
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
