@@ -66,6 +66,11 @@ const moderatorLinks: SidebarLink[] = [
     icon: <Star className="h-5 w-5" />,
     tooltip: "Moderate Reviews",
   },
+  {
+    to: "/app/mod/tickets",
+    icon: <Package className="h-5 w-5" />,
+    tooltip: "Moderate Tickets",
+  },
 ];
 
 const adminLinks: SidebarLink[] = [

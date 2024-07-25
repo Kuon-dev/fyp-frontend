@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -34,72 +34,28 @@ import { RepoCard } from "@/components/repo/card";
 import { Shell } from "@/components/landing/shell";
 import { Spinner } from "@/components/custom/spinner";
 
-// Schema definition
-const SearchFilterSchema = z
-  .object({
-    searchQuery: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    language: z.string().optional(),
-  })
-  .refine(
-    (data) =>
-      data.language || data.searchQuery || (data.tags && data.tags.length > 0),
-    {
-      message: "At least one field must be filled out",
-    },
-  );
+const SearchFilterSchema = z.object({
+  searchQuery: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  language: z.string().optional(),
+});
 
 type SearchFilterSchemaType = z.infer<typeof SearchFilterSchema>;
 
-// SearchComponent
-const SearchComponent: React.FC = () => {
-  const { searchCriteria, setSearchCriteria, resetSearch, setIsLoading } =
-    useSearchStore();
-  const [tagInput, setTagInput] = useState("");
+const SearchComponent: React.FC<{
+  onSearch: (data: SearchFilterSchemaType) => void;
+}> = ({ onSearch }) => {
+  const { searchCriteria, setSearchCriteria } = useSearchStore();
+  const [tagInput, setTagInput] = React.useState("");
 
   const form = useForm<SearchFilterSchemaType>({
     resolver: zodResolver(SearchFilterSchema),
-    defaultValues: {
-      searchQuery: searchCriteria.query,
-      tags: searchCriteria.tags,
-      language: searchCriteria.language,
-    },
+    defaultValues: searchCriteria,
   });
 
-  const handleSearch = async (data: SearchFilterSchemaType) => {
-    setIsLoading(true);
-    resetSearch();
-    setSearchCriteria({
-      query: data.searchQuery || "",
-      tags: data.tags || [],
-      language: data.language || "",
-    });
-
-    try {
-      const queryParams = new URLSearchParams();
-      if (data.searchQuery) queryParams.append("query", data.searchQuery);
-      data.tags?.forEach((tag) => queryParams.append("tags", tag));
-      if (data.language) queryParams.append("language", data.language);
-
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/repos/search?${queryParams.toString()}`,
-        { method: "GET" },
-      );
-
-      const res = await response.json();
-      if (!response.ok) {
-        throw new Error(res.message);
-      }
-
-      useSearchStore.getState().setResults(res.data);
-      useSearchStore.getState().setTotalResults(res.meta.total);
-      useSearchStore.getState().setCurrentPage(1);
-      useSearchStore.getState().setHasMore(res.meta.total > res.data.length);
-    } catch (error) {
-      showErrorToast(error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSearch = (data: SearchFilterSchemaType) => {
+    setSearchCriteria(data);
+    onSearch(data);
   };
 
   const addTag = (tag: string) => {
@@ -107,7 +63,7 @@ const SearchComponent: React.FC = () => {
     if (trimmedTag && !form.getValues("tags")?.includes(trimmedTag)) {
       const updatedTags = [...(form.getValues("tags") || []), trimmedTag];
       form.setValue("tags", updatedTags);
-      setSearchCriteria({ tags: updatedTags });
+      setSearchCriteria({ ...searchCriteria, tags: updatedTags });
     }
     setTagInput("");
   };
@@ -115,7 +71,7 @@ const SearchComponent: React.FC = () => {
   const removeTag = (tag: string) => {
     const newTags = form.getValues("tags")?.filter((t) => t !== tag) || [];
     form.setValue("tags", newTags);
-    setSearchCriteria({ tags: newTags });
+    setSearchCriteria({ ...searchCriteria, tags: newTags });
   };
 
   return (
@@ -217,7 +173,10 @@ const SearchComponent: React.FC = () => {
                                       ? ""
                                       : currentValue;
                                   field.onChange(value);
-                                  setSearchCriteria({ language: value });
+                                  setSearchCriteria({
+                                    ...searchCriteria,
+                                    language: value,
+                                  });
                                 }}
                               >
                                 <Check
@@ -254,129 +213,40 @@ const SearchComponent: React.FC = () => {
   );
 };
 
-// ResultsComponent
-const ResultsComponent: React.FC = () => {
+const SearchAndFilter: React.FC = () => {
   const {
+    setIsLoading,
+    setResults,
+    setTotalResults,
+    setHasMore,
+    setCurrentPage,
+    currentPage,
+    searchCriteria,
     results,
+    appendResults,
     isLoading,
     hasMore,
-    currentPage,
-    setCurrentPage,
-    appendResults,
-    setHasMore,
-    setIsLoading,
-    searchCriteria,
   } = useSearchStore();
 
-  const observer = useRef<IntersectionObserver | null>(null);
-  const lastRepoElementRef = useCallback(
-    (node: HTMLElement | null) => {
-      if (isLoading) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setCurrentPage(currentPage + 1);
-        }
-      });
-      if (node) observer.current.observe(node);
-    },
-    [isLoading, hasMore, setCurrentPage, currentPage],
-  );
+  const loadingRef = useRef(false);
 
-  const fetchMoreData = useCallback(async () => {
-    if (!hasMore || isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
-      });
-
-      // Correctly format the search criteria
-      if (searchCriteria.query)
-        queryParams.append("query", searchCriteria.query);
-      searchCriteria.tags.forEach((tag) => queryParams.append("tags", tag));
-      if (searchCriteria.language)
-        queryParams.append("language", searchCriteria.language);
-
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/repos/search?${queryParams.toString()}`,
-        { method: "GET" },
-      );
-
-      const res = await response.json();
-      if (!response.ok) {
-        throw new Error(res.message);
-      }
-
-      if (res.data.length === 0) {
-        setHasMore(false);
-      } else {
-        appendResults(res.data);
-        setHasMore(res.meta.total > results.length + res.data.length);
-      }
-    } catch (error) {
-      showErrorToast(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    currentPage,
-    searchCriteria,
-    hasMore,
-    isLoading,
-    appendResults,
-    setHasMore,
-    setIsLoading,
-    results.length,
-  ]);
-
-  useEffect(() => {
-    fetchMoreData();
-  }, [currentPage, fetchMoreData]);
-
-  return (
-    <Shell className="mt-4">
-      {isLoading && results.length === 0 ? (
-        <div className="flex items-center justify-center mt-4">
-          <Spinner />
-        </div>
-      ) : results.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {results.map((item, index) => (
-            <RepoCard
-              repo={item}
-              key={item.id}
-              ref={index === results.length - 1 ? lastRepoElementRef : null}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center justify-center mt-4">
-          <p>No results found. Try adjusting your search criteria.</p>
-        </div>
-      )}
-      {isLoading && results.length > 0 && (
-        <div className="flex items-center justify-center mt-4">
-          <Spinner />
-        </div>
-      )}
-    </Shell>
-  );
-};
-
-// Main component
-const SearchAndFilter: React.FC = () => {
-  const { setIsLoading, setResults, setTotalResults, setHasMore } =
-    useSearchStore();
-
-  useEffect(() => {
-    const fetchInitialResults = async () => {
+  const performSearch = useCallback(
+    async (data: SearchFilterSchemaType, page: number = 1) => {
+      if (loadingRef.current) return;
+      loadingRef.current = true;
       setIsLoading(true);
+
       try {
+        const queryParams = new URLSearchParams({
+          page: page.toString(),
+          limit: "10",
+        });
+        if (data.searchQuery) queryParams.append("query", data.searchQuery);
+        data.tags?.forEach((tag) => queryParams.append("tags", tag));
+        if (data.language) queryParams.append("language", data.language);
+
         const response = await fetch(
-          `${window.ENV.BACKEND_URL}/api/v1/repos/search?limit=10`,
+          `${window.ENV.BACKEND_URL}/api/v1/repos/search?${queryParams.toString()}`,
           { method: "GET" },
         );
 
@@ -385,23 +255,98 @@ const SearchAndFilter: React.FC = () => {
           throw new Error(res.message);
         }
 
-        setResults(res.data);
+        if (page === 1) {
+          setResults(res.data);
+          setCurrentPage(1);
+        } else {
+          appendResults(res.data);
+        }
         setTotalResults(res.meta.total);
-        setHasMore(res.meta.total > res.data.length);
+        setHasMore(
+          res.meta.total >
+            (page === 1 ? res.data.length : results.length + res.data.length),
+        );
+        setCurrentPage(page);
       } catch (error) {
         showErrorToast(error);
       } finally {
         setIsLoading(false);
+        loadingRef.current = false;
       }
-    };
+    },
+    [
+      setIsLoading,
+      setResults,
+      setTotalResults,
+      setHasMore,
+      setCurrentPage,
+      results.length,
+      appendResults,
+    ],
+  );
 
-    fetchInitialResults();
-  }, [setIsLoading, setResults, setTotalResults, setHasMore]);
+  useEffect(() => {
+    if (results.length === 0) {
+      performSearch(searchCriteria);
+    }
+  }, []);
+
+  const loadMoreData = useCallback(() => {
+    if (!isLoading && hasMore && !loadingRef.current) {
+      performSearch(searchCriteria, currentPage + 1);
+    }
+  }, [isLoading, hasMore, searchCriteria, currentPage, performSearch]);
+
+  const ResultsComponentWithInfiniteScroll: React.FC = () => {
+    const observer = useRef<IntersectionObserver | null>(null);
+    const lastRepoElementRef = useCallback(
+      (node: HTMLElement | null) => {
+        if (isLoading) return;
+        if (observer.current) observer.current.disconnect();
+        observer.current = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting && hasMore) {
+            loadMoreData();
+          }
+        });
+        if (node) observer.current.observe(node);
+      },
+      [isLoading, hasMore],
+    );
+
+    return (
+      <Shell className="mt-4">
+        {isLoading && results.length === 0 ? (
+          <div className="flex items-center justify-center mt-4">
+            <Spinner />
+          </div>
+        ) : results.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {results.map((item, index) => (
+              <RepoCard
+                repo={item}
+                key={item.id}
+                ref={index === results.length - 1 ? lastRepoElementRef : null}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center mt-4">
+            <p>No results found. Try adjusting your search criteria.</p>
+          </div>
+        )}
+        {isLoading && results.length > 0 && (
+          <div className="flex items-center justify-center mt-4">
+            <Spinner />
+          </div>
+        )}
+      </Shell>
+    );
+  };
 
   return (
     <>
-      <SearchComponent />
-      <ResultsComponent />
+      <SearchComponent onSearch={(data) => performSearch(data)} />
+      <ResultsComponentWithInfiniteScroll />
     </>
   );
 };

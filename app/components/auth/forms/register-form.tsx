@@ -1,17 +1,9 @@
 import { HTMLAttributes, useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import {
-  Link,
-  useNavigate,
-  // useFetcher,
-  // json,
-  // useLoaderData,
-  // useActionData,
-} from "@remix-run/react";
+import { Link } from "@remix-run/react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { IconBrandFacebook, IconBrandGithub } from '@tabler/icons-react'
 import {
   Form,
   FormControl,
@@ -20,11 +12,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { PasswordInput } from "@/components/custom/password-input";
 import { cn } from "@/lib/utils";
-// import { ActionFunctionArgs, redirect } from '@remix-run/node'
+
 interface UserRegistrationFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 type RegisterErrorSchema = {
@@ -48,6 +47,10 @@ const registrationFormSchema = z.object({
     .string()
     .min(1, { message: "Please enter your password" })
     .min(7, { message: "Password must be at least 7 characters long" }),
+  userType: z.enum(["buyer", "seller"], {
+    required_error:
+      "Please select whether you're registering as a buyer or seller",
+  }),
 });
 
 export default function RegisterForm({
@@ -62,6 +65,7 @@ export default function RegisterForm({
       fullname: "",
       email: "",
       password: "",
+      userType: "buyer",
     },
   });
 
@@ -132,6 +136,30 @@ export default function RegisterForm({
                   <FormControl>
                     <PasswordInput placeholder="********" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="userType"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel>Register as</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select user type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="buyer">Buyer</SelectItem>
+                      <SelectItem value="seller">Seller</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
