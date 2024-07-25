@@ -10,7 +10,7 @@ import ErrorComponent from "@/components/error/500";
 import { Skeleton } from "@/components/ui/skeleton";
 import { checkAuthCookie } from "@/lib/router-guard";
 import { showErrorToast } from "@/lib/handle-error";
-import RepoCard from "@/components/repo/card-repo-seller";
+import RepoCard from "@/components/repo/card-repo-user";
 
 const repoSchema = z.object({
   id: z.string(),

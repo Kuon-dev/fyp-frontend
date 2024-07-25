@@ -23,7 +23,7 @@ import { checkAuthCookie } from "@/lib/router-guard";
 import { showErrorToast } from "@/lib/handle-error";
 import RepoCard from "@/components/repo/card-repo-seller";
 
-const repoSchema = z.object({
+export const repoSchema = z.object({
   id: z.string(),
   userId: z.string(),
   sourceJs: z.string(),

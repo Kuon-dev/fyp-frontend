@@ -25,7 +25,7 @@ interface MeProfile {
   userId: string;
 }
 
-interface Me {
+export interface Me {
   user: MeUser;
   profile: MeProfile;
   sellerProfile: BackendSellerProfile;

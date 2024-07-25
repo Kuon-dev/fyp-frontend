@@ -265,6 +265,7 @@ const ResultsComponent: React.FC = () => {
     appendResults,
     setHasMore,
     setIsLoading,
+    searchCriteria,
   } = useSearchStore();
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -279,39 +280,61 @@ const ResultsComponent: React.FC = () => {
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, hasMore, currentPage, setCurrentPage],
+    [isLoading, hasMore, setCurrentPage, currentPage],
   );
 
-  useEffect(() => {
-    const fetchMoreData = async () => {
-      if (currentPage === 1) return;
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `${window.ENV.BACKEND_URL}/api/v1/repos/search?page=${currentPage}&limit=10`,
-          { method: "GET" },
-        );
+  const fetchMoreData = useCallback(async () => {
+    if (!hasMore || isLoading) return;
 
-        const res = await response.json();
-        if (!response.ok) {
-          throw new Error(res.message);
-        }
+    setIsLoading(true);
+    try {
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: "10",
+      });
 
-        if (res.data.length === 0) {
-          setHasMore(false);
-        } else {
-          appendResults(res.data);
-          setHasMore(res.meta.total > results.length + res.data.length);
-        }
-      } catch (error) {
-        showErrorToast(error);
-      } finally {
-        setIsLoading(false);
+      // Correctly format the search criteria
+      if (searchCriteria.query)
+        queryParams.append("query", searchCriteria.query);
+      searchCriteria.tags.forEach((tag) => queryParams.append("tags", tag));
+      if (searchCriteria.language)
+        queryParams.append("language", searchCriteria.language);
+
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/repos/search?${queryParams.toString()}`,
+        { method: "GET" },
+      );
+
+      const res = await response.json();
+      if (!response.ok) {
+        throw new Error(res.message);
       }
-    };
 
+      if (res.data.length === 0) {
+        setHasMore(false);
+      } else {
+        appendResults(res.data);
+        setHasMore(res.meta.total > results.length + res.data.length);
+      }
+    } catch (error) {
+      showErrorToast(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    currentPage,
+    searchCriteria,
+    hasMore,
+    isLoading,
+    appendResults,
+    setHasMore,
+    setIsLoading,
+    results.length,
+  ]);
+
+  useEffect(() => {
     fetchMoreData();
-  }, [currentPage, appendResults, setHasMore, setIsLoading, results.length]);
+  }, [currentPage, fetchMoreData]);
 
   return (
     <Shell className="mt-4">
@@ -345,6 +368,36 @@ const ResultsComponent: React.FC = () => {
 
 // Main component
 const SearchAndFilter: React.FC = () => {
+  const { setIsLoading, setResults, setTotalResults, setHasMore } =
+    useSearchStore();
+
+  useEffect(() => {
+    const fetchInitialResults = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `${window.ENV.BACKEND_URL}/api/v1/repos/search?limit=10`,
+          { method: "GET" },
+        );
+
+        const res = await response.json();
+        if (!response.ok) {
+          throw new Error(res.message);
+        }
+
+        setResults(res.data);
+        setTotalResults(res.meta.total);
+        setHasMore(res.meta.total > res.data.length);
+      } catch (error) {
+        showErrorToast(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialResults();
+  }, [setIsLoading, setResults, setTotalResults, setHasMore]);
+
   return (
     <>
       <SearchComponent />

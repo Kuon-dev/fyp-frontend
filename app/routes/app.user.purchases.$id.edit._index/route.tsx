@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { injectCSS, injectTailwind } from "@/integrations/monaco/inject-css";
-import { toast } from "sonner";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -26,23 +25,10 @@ import { EditorMenubar } from "@/components/repo/editor-menubar";
 import { MonacoLoading } from "@/components/repo/loading";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { Repo } from "@/components/repo/card-repo-seller";
-import {
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Progress } from "@/components/ui/progress";
 import { setupLanguageService } from "@/integrations/monaco/native.utils";
-import { readStream } from "@/lib/utils";
 import CodeAnalysis, {
   PrivateCodeCheckResult,
 } from "@/components/repo/code-analysis";
-import { CodeCheckProgressDialog } from "@/components/repo/code-check-progress";
 
 monacoLoader.config({
   paths: {
@@ -50,7 +36,6 @@ monacoLoader.config({
   },
 });
 
-// Add Remix loader
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { id } = params;
   if (!id) {
@@ -66,12 +51,12 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   });
 
   if (!response.ok) {
+    console.log(await response.json());
     throw new Response("Not Found", { status: 404 });
   }
 
   const data = await response.json();
 
-  // Fetch code analysis data
   const analysisResponse = await fetch(
     `${process.env.BACKEND_URL}/api/v1/code-analysis/${id}`,
     {
@@ -93,14 +78,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   });
 };
 
-// Add Error Boundary
 export function ErrorBoundary() {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404 - Repo Not Found</h1>
         <p className="mb-4">The repository you're looking for doesn't exist.</p>
-        <Link to="/app/seller/repos">
+        <Link to="/app/user/purchases">
           <Button>Go Back to Repos</Button>
         </Link>
       </div>
@@ -108,74 +92,15 @@ export function ErrorBoundary() {
   );
 }
 
-// PublishAlertDialog component
-type PublishAlertDialogProps = {
-  isOpen: boolean;
-  isPublishing: boolean;
-  publishProgress: number;
-  onConfirm: () => void;
-  onCancel: () => void;
-};
-
-const PublishAlertDialog: React.FC<PublishAlertDialogProps> = ({
-  isOpen,
-  isPublishing,
-  publishProgress,
-  onConfirm,
-  onCancel,
-}) => {
-  return (
-    <AlertDialog open={isOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Publish Repository</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to publish this repository? This action will
-            make the repository visible to all users and cannot be undone.
-          </AlertDialogDescription>
-          {isPublishing && (
-            <Progress value={publishProgress} className="w-full mt-4" />
-          )}
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel} disabled={isPublishing}>
-            {isPublishing ? "Cancel Upload" : "Cancel"}
-          </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} disabled={isPublishing}>
-            Publish
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
-
 export default function EditorLayout() {
   const { repo, codeAnalysis } = useLoaderData<{
     repo: Repo;
     codeAnalysis: PrivateCodeCheckResult | null;
   }>();
   const { id: repoId } = useParams<{ id: string }>();
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [isPublishing, setIsPublishing] = useState<boolean>(false);
-  const [isCheckingCode, setIsCheckingCode] = useState<boolean>(false);
-  const [publishProgress, setPublishProgress] = useState<number>(0);
-  const [codeCheckProgress, setCodeCheckProgress] = useState<number>(0);
-  const [showPublishDialog, setShowPublishDialog] = useState<boolean>(false);
-  const [showCodeCheckDialog, setShowCodeCheckDialog] =
-    useState<boolean>(false);
   const [showCodeAnalysis, setShowCodeAnalysis] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("main");
-  const {
-    editorValue,
-    cssValue,
-    editorOptions,
-    setEditorValue,
-    setCssValue,
-    setEditorOptions,
-  } = useMonacoStore();
-
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const { setEditorValue, setCssValue, setEditorOptions } = useMonacoStore();
 
   useEffect(() => {
     const initializeEditor = () => {
@@ -187,150 +112,64 @@ export default function EditorLayout() {
     };
 
     initializeEditor();
-
-    // Clean up function to reset store when unmounting
   }, [repoId, repo, setEditorValue, setCssValue, setEditorOptions]);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/repo/${repo.id}`,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sourceJs: editorValue,
-            sourceCss: cssValue,
-            language: editorOptions.language === "javascript" ? "JSX" : "TSX",
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save changes");
-      }
-
-      toast.success("Changes saved successfully");
-    } catch (error) {
-      console.error("Error saving changes:", error);
-      toast.error("Failed to save changes. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handlePublish = async (): Promise<void> => {
-    setIsPublishing(true);
-    setPublishProgress(0);
-    abortControllerRef.current = new AbortController();
-
-    try {
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/repo/${repo.id}/publish`,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          signal: abortControllerRef.current.signal,
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to publish repository");
-      }
-
-      const reader = response.body!.getReader();
-      await readStream(reader, (progress) => {
-        setPublishProgress(progress);
-      });
-
-      toast.success("Repository published successfully");
-      window.location.reload();
-      // Update local state or refetch data as needed
-    } catch (error) {
-      if ((error as any).name === "AbortError") {
-        toast.info("Upload cancelled");
-      } else {
-        console.error("Error publishing repository:", error);
-        toast.error("Failed to publish repository. Please try again.");
-      }
-    } finally {
-      setIsPublishing(false);
-      setShowPublishDialog(false);
-      setPublishProgress(0);
-      abortControllerRef.current = null;
-    }
-  };
-
-  const handleCancelPublish = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    setShowPublishDialog(false);
-  };
-
-  const handleCodeCheck = async (): Promise<void> => {
-    setIsCheckingCode(true);
-    setCodeCheckProgress(0);
-    abortControllerRef.current = new AbortController();
-
-    try {
-      const response = await fetch(
-        `${window.ENV.BACKEND_URL}/api/v1/repo/${repo.id}/check`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          signal: abortControllerRef.current.signal,
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to submit code check");
-      }
-
-      const reader = response.body!.getReader();
-      await readStream(reader, (progress) => {
-        setCodeCheckProgress(progress);
-      });
-
-      toast.success("Code check completed successfully");
-      window.location.reload();
-    } catch (error) {
-      if ((error as any).name === "AbortError") {
-        toast.info("Code check cancelled");
-      } else {
-        console.error("Error submitting code check:", error);
-        toast.error("Failed to submit code check. Please try again.");
-      }
-    } finally {
-      setIsCheckingCode(false);
-      setShowCodeCheckDialog(false);
-      setCodeCheckProgress(0);
-      abortControllerRef.current = null;
-    }
-  };
-
-  const handleCancelCodeCheck = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    setShowCodeCheckDialog(false);
-  };
+  //const handleCodeCheck = async (): Promise<void> => {
+  //  setIsCheckingCode(true);
+  //  setCodeCheckProgress(0);
+  //  abortControllerRef.current = new AbortController();
+  //
+  //  try {
+  //    const response = await fetch(
+  //      `${window.ENV.BACKEND_URL}/api/v1/repo/${repo.id}/check`,
+  //      {
+  //        method: "POST",
+  //        credentials: "include",
+  //        headers: {
+  //          "Content-Type": "application/json",
+  //        },
+  //        signal: abortControllerRef.current.signal,
+  //      }
+  //    );
+  //
+  //    if (!response.ok) {
+  //      throw new Error("Failed to submit code check");
+  //    }
+  //
+  //    const reader = response.body!.getReader();
+  //    await readStream(reader, (progress) => {
+  //      setCodeCheckProgress(progress);
+  //    });
+  //
+  //    toast.success("Code check completed successfully");
+  //    window.location.reload();
+  //  } catch (error) {
+  //    if ((error as any).name === "AbortError") {
+  //      toast.info("Code check cancelled");
+  //    } else {
+  //      console.error("Error submitting code check:", error);
+  //      toast.error("Failed to submit code check. Please try again.");
+  //    }
+  //  } finally {
+  //    setIsCheckingCode(false);
+  //    setShowCodeCheckDialog(false);
+  //    setCodeCheckProgress(0);
+  //    abortControllerRef.current = null;
+  //  }
+  //};
+  //
+  //const handleCancelCodeCheck = () => {
+  //  if (abortControllerRef.current) {
+  //    abortControllerRef.current.abort();
+  //  }
+  //  setShowCodeCheckDialog(false);
+  //};
 
   return (
     <Layout>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="">
         <LayoutHeader className="flex flex-col gap-4 justify-start items-start">
-          <Link to="/app/seller/repos">
+          <Link to="/app/user/purchases">
             <Button>Back</Button>
           </Link>
 
@@ -341,29 +180,6 @@ export default function EditorLayout() {
             </TabsList>
             <EditorMenubar />
 
-            <Button
-              onClick={handleSave}
-              disabled={isSaving || isPublishing || isCheckingCode}
-            >
-              Save
-            </Button>
-            <Button
-              onClick={() => setShowPublishDialog(true)}
-              disabled={
-                isSaving ||
-                isPublishing ||
-                isCheckingCode ||
-                repo.status === "active"
-              }
-            >
-              Publish
-            </Button>
-            <Button
-              onClick={() => setShowCodeCheckDialog(true)}
-              disabled={isSaving || isPublishing || isCheckingCode}
-            >
-              Submit Code Check
-            </Button>
             <Button
               onClick={() => setShowCodeAnalysis(true)}
               disabled={!codeAnalysis}
@@ -381,20 +197,6 @@ export default function EditorLayout() {
           />
         </LayoutBody>
       </Tabs>
-      <PublishAlertDialog
-        isOpen={showPublishDialog}
-        isPublishing={isPublishing}
-        publishProgress={publishProgress}
-        onConfirm={handlePublish}
-        onCancel={handleCancelPublish}
-      />
-      <CodeCheckProgressDialog
-        isOpen={showCodeCheckDialog}
-        isChecking={isCheckingCode}
-        checkProgress={codeCheckProgress}
-        onConfirm={handleCodeCheck}
-        onCancel={handleCancelCodeCheck}
-      />
       {codeAnalysis && (
         <CodeAnalysis
           isOpen={showCodeAnalysis}
@@ -529,7 +331,7 @@ function CodeRepoEditorPreview({
   }, [activeTab, updateEditorContent]);
 
   const handleEditorContentChange: OnChange = useCallback(
-    (value, event) => {
+    (value) => {
       const language = activeTab === "main" ? editorOptions.language : "css";
       storeHandleEditorChange(value ?? "", language);
     },

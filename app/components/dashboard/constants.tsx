@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Star,
   FileCode,
+  ShoppingBasket,
 } from "lucide-react";
 
 export interface SidebarLink {
@@ -24,14 +25,14 @@ export interface RoleSidebarLinks {
 const userLinks: SidebarLink[] = [
   { to: "/app", icon: <Home className="h-5 w-5" />, tooltip: "Dashboard" },
   {
-    to: "/app/user/repos",
-    icon: <Package className="h-5 w-5" />,
-    tooltip: "Your code repos",
-  },
-  {
     to: "/app/user/purchases",
     icon: <ShoppingCart className="h-5 w-5" />,
     tooltip: "Your purchases",
+  },
+  {
+    to: "/app/user/orders",
+    icon: <ShoppingBasket className="h-5 w-5" />,
+    tooltip: "Your orders",
   },
 ];
 
