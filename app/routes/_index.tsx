@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node";
+import { LoaderFunction, json, type MetaFunction } from "@remix-run/node";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
@@ -15,6 +15,19 @@ import { Button } from "@/components/ui/button";
 import Footer from "@/components/landing/footer";
 import Navbar from "@/components/landing/navbar";
 import { ClientOnly } from "remix-utils/client-only";
+import { useLoaderData } from "@remix-run/react";
+
+interface CodeRepo {
+  id: string;
+  name: string;
+  description: string | null;
+  user: {
+    email: string;
+    profile: {
+      name: string | null;
+    } | null;
+  };
+}
 
 export const meta: MetaFunction = () => {
   return [
@@ -375,13 +388,39 @@ const items = [
   },
 ];
 
+export const loader: LoaderFunction = async () => {
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/api/v1/repos/featured`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return json({ featuredRepos: data });
+  } catch (error) {
+    console.error("Error fetching featured repos:", error);
+    return json(
+      { featuredRepos: [], error: "Failed to fetch featured repositories" },
+      { status: 500 },
+    );
+  }
+};
+
 export default function Index() {
-  // const { showBanner } = useLoaderData<typeof loader>();
+  const { featuredRepos } = useLoaderData<{ featuredRepos: CodeRepo[] }>();
+
   return (
     <>
       <Navbar />
       <div className="h-screen w-full dark:bg-black bg-white dark:bg-grid-white/[0.1] bg-grid-black/[0.2] relative flex items-center justify-center md:px-0 px-4 flex-col">
-        {/* Radial gradient for the container to give a faded look */}
         <p className="text-4xl sm:text-7xl font-bold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-8 max-w-4xl">
           Elevate Your Code Quality with AI-Powered Analysis
         </p>
@@ -393,19 +432,47 @@ export default function Index() {
         <div>
           <Button className="mt-8">Get Started</Button>
         </div>
-        <div className="mt-32">
-          {/*
-          <p className="text-xl sm:text-4xl font-bold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 max-w-4xl">
-            <span>What is Kortex?</span><span>{"   "}</span><span className="text-lg sm:text-xl font-semibold relative z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 max-w-4xl">Sell high-quality, AI-reviewed code snippets on the Kortex platform.
-            </span>
-          </p>
-           */}
-        </div>
       </div>
 
       <div className="w-full bg-black dark:bg-grid-white/[0.1] bg-grid-black/[0.2] pb-20">
         <div className="md:max-w-4xl mx-auto bg-transparent max-w-2xl md:px-0 px-4">
           <ClientOnly>{() => <BentoGridThirdDemo />}</ClientOnly>
+
+          {/* Featured Repositories Section */}
+          <section className="mt-20">
+            <h2 className="text-3xl font-bold mb-6 text-white">
+              Featured Repositories
+            </h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredRepos.map((repo) => (
+                <div
+                  key={repo.id}
+                  className="relative overflow-hidden transition-transform duration-300 ease-in-out rounded-lg shadow-lg group hover:shadow-xl hover:-translate-y-2 bg-white dark:bg-gray-800"
+                >
+                  <a
+                    href={`/repo/${repo.id}`}
+                    className="absolute inset-0 z-10"
+                  >
+                    <span className="sr-only">View {repo.name} repository</span>
+                  </a>
+                  <div className="p-4">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      {repo.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {repo.description}
+                    </p>
+                    <div className="mt-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        By {repo.user.profile?.name || repo.user.email}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <Footer className="pt-10" />
         </div>
       </div>
