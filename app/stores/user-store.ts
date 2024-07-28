@@ -38,6 +38,8 @@ interface UserStoreState {
   setUser: (user: Me | null) => void;
   setLoading: (isLoading: boolean) => void;
   checkLoginStatus: () => Promise<boolean>;
+  resetStore: () => void;
+  handleLogout: () => Promise<void>;
 }
 
 export const useUserStore = create<UserStoreState>()(
@@ -86,6 +88,26 @@ export const useUserStore = create<UserStoreState>()(
             return false;
           } finally {
             setLoading(false);
+          }
+        },
+        resetStore: () => set({ user: null, isLoggedIn: false }),
+        handleLogout: async () => {
+          try {
+            const res = await fetch(`${window.ENV.BACKEND_URL}/api/v1/logout`, {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            if (res.ok) {
+              get().resetStore();
+              window.location.href = "/login";
+            } else {
+              throw new Error("Logout failed");
+            }
+          } catch (error) {
+            showErrorToast(error);
           }
         },
       }),

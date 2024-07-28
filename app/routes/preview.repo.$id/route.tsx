@@ -25,24 +25,26 @@ export default function ViewRepo() {
   const [renderValue, setRenderValue] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  const ZOOM_FACTOR = 0.5; // Fixed zoom factor, adjust as needed
+
   useEffect(() => {
     if (!repo) {
       setIsLoading(false);
       return;
     }
-
     const prepareCode = () => {
       const importRegex = /^import\s.+?;?\s*$/gm;
       const cleanedJs = (repo.sourceJs || "").replace(importRegex, "").trim();
-
-      setRenderValue(`
-        injectCSS(\`${repo.sourceCss || ""}\`);
-        ${cleanedJs}
-      `);
+      setRenderValue(cleanedJs);
       setIsLoading(false);
     };
-
     prepareCode();
+  }, [repo]);
+
+  useEffect(() => {
+    if (repo && repo.sourceCss) {
+      injectCSS(repo.sourceCss);
+    }
   }, [repo]);
 
   if (isLoading) {
@@ -68,10 +70,29 @@ export default function ViewRepo() {
     );
   }
 
+  const previewContainerStyle: React.CSSProperties = {
+    width: "100%",
+    height: "100vh", // Use full viewport height
+    overflow: "hidden",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+  };
+
+  const previewWrapperStyle: React.CSSProperties = {
+    transform: `scale(${ZOOM_FACTOR})`,
+    transformOrigin: "top left",
+    width: `${100 / ZOOM_FACTOR}%`,
+    height: `${100 / ZOOM_FACTOR}%`,
+  };
+
   return (
-    <div className="">
-      <LiveProvider code={renderValue} noInline scope={{ injectCSS }}>
-        <LivePreview />
+    <div className="w-full h-screen">
+      <LiveProvider code={renderValue} noInline>
+        <div style={previewContainerStyle}>
+          <div style={previewWrapperStyle}>
+            <LivePreview />
+          </div>
+        </div>
       </LiveProvider>
     </div>
   );

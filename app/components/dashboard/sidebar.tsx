@@ -10,6 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientOnly } from "remix-utils/client-only";
 import { ExitIcon } from "@radix-ui/react-icons";
+import { useUserStore } from "@/stores/user-store";
 
 // Define the LinkProps interface
 export interface LinkProps {
@@ -29,19 +30,7 @@ export default function DashboardSidebar({
   sidebarLinks,
   settingsLink,
 }: DashboardSidebarProps) {
-  const handleLogout = async () => {
-    const res = await fetch(`${window.ENV.BACKEND_URL}/api/v1/logout`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (res.ok) {
-      window.location.href = "/login";
-    }
-  };
+  const { handleLogout } = useUserStore();
 
   return (
     <ClientOnly

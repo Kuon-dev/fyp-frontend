@@ -10,6 +10,7 @@ interface IframeRendererProps {
   name: string;
   className?: string;
   fullscreen?: boolean;
+  zoomOutFactor?: number; // New prop for controlling zoom level
 }
 
 const IframeRenderer: React.FC<IframeRendererProps> = ({
@@ -19,6 +20,7 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
   name,
   className,
   fullscreen = false,
+  zoomOutFactor = 1, // Default zoom out to 75%
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [debug, setDebug] = useState<string>("");
@@ -170,6 +172,13 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
     className,
   );
 
+  const iframeStyle: React.CSSProperties = {
+    transform: `scale(${zoomOutFactor})`,
+    transformOrigin: "top left",
+    width: `${100 / zoomOutFactor}%`,
+    height: `${100 / zoomOutFactor}%`,
+  };
+
   return (
     <div className={containerClass}>
       {error ? (
@@ -183,6 +192,7 @@ const IframeRenderer: React.FC<IframeRendererProps> = ({
         <iframe
           key={key}
           ref={iframeRef}
+          style={iframeStyle}
           className="w-full h-full"
           title={name}
           sandbox="allow-scripts allow-popups allow-same-origin"

@@ -436,43 +436,58 @@ export default function Index() {
 
       <div className="w-full bg-black dark:bg-grid-white/[0.1] bg-grid-black/[0.2] pb-20">
         <div className="md:max-w-4xl mx-auto bg-transparent max-w-2xl md:px-0 px-4">
-          <ClientOnly>{() => <BentoGridThirdDemo />}</ClientOnly>
+          <ClientOnly>
+            {() => (
+              <>
+                <BentoGridThirdDemo />
 
-          {/* Featured Repositories Section */}
-          <section className="mt-20">
-            <h2 className="text-3xl font-bold mb-6 text-white">
-              Featured Repositories
-            </h2>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {featuredRepos.map((repo) => (
-                <div
-                  key={repo.id}
-                  className="relative overflow-hidden transition-transform duration-300 ease-in-out rounded-lg shadow-lg group hover:shadow-xl hover:-translate-y-2 bg-white dark:bg-gray-800"
-                >
-                  <a
-                    href={`/repo/${repo.id}`}
-                    className="absolute inset-0 z-10"
-                  >
-                    <span className="sr-only">View {repo.name} repository</span>
-                  </a>
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                      {repo.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {repo.description}
-                    </p>
-                    <div className="mt-2">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        By {repo.user.profile?.name || repo.user.email}
-                      </span>
-                    </div>
+                <section className="mt-20">
+                  <h2 className="text-3xl font-bold mb-6 text-white">
+                    Featured Repositories
+                  </h2>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {featuredRepos.map((repo) => (
+                      <div
+                        key={repo.id}
+                        className="relative overflow-hidden transition-transform duration-300 ease-in-out rounded-lg shadow-lg group hover:shadow-xl hover:-translate-y-2 bg-white dark:bg-gray-800"
+                      >
+                        <div>
+                          <iframe
+                            src={`${window.ENV.APP_URL}/preview/repo/${repo.id}`}
+                            title={repo.name}
+                            width="80%"
+                            className="w-full h-64 object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <a
+                          href={`/r/${repo.id}`}
+                          className="absolute inset-0 z-10"
+                        >
+                          <span className="sr-only">
+                            View {repo.name} repository
+                          </span>
+                        </a>
+                        <div className="p-4">
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-1">
+                            {repo.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+                            {repo.description}
+                          </p>
+                          <div className="mt-2">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              By {repo.user.profile?.name || repo.user.email}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
+                </section>
+              </>
+            )}
+          </ClientOnly>
           <Footer className="pt-10" />
         </div>
       </div>

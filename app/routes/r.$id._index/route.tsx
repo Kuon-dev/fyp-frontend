@@ -39,7 +39,10 @@ import {
 } from "@/components/ui/card";
 import { showErrorToast } from "@/lib/handle-error";
 import { useCheckoutStore } from "@/stores/checkout-store";
-import CodeAnalysis from "@/components/repo/code-analysis";
+import CodeAnalysis, {
+  PublicCodeCheckResult,
+} from "@/components/repo/code-analysis";
+import { useUserStore } from "@/stores/user-store";
 
 export const loader: LoaderFunction = async ({ params }) => {
   const id = params.id;
@@ -323,6 +326,7 @@ const ResizablePanel: React.FC<ResizablePanelProps> = ({
 function Price({ repo }: { repo: RepoResponse }) {
   const navigate = useNavigate();
   const { clientSecret, handlePurchase, isLoading } = useCheckoutStore();
+  const { isLoggedIn } = useUserStore();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -333,6 +337,18 @@ function Price({ repo }: { repo: RepoResponse }) {
   };
 
   const onPurchaseClick = async () => {
+    if (!isLoggedIn) {
+      toast("Please log in to make a purchase", {
+        action: {
+          label: "Login",
+          onClick: () => {
+            navigate("/login");
+          },
+        },
+      });
+      return;
+    }
+
     try {
       const success = await handlePurchase(repo.id);
       if (success) {
@@ -373,7 +389,7 @@ function Price({ repo }: { repo: RepoResponse }) {
           <div className="flex items-center justify-center bg-primary/10 rounded-lg p-4">
             <DollarSign className="h-10 w-10 text-primary mr-2" />
             <span className="text-5xl font-bold text-primary">
-              ${repo.price.toFixed(2)}
+              {repo.price.toFixed(2)}
             </span>
           </div>
         </CardContent>
@@ -382,9 +398,13 @@ function Price({ repo }: { repo: RepoResponse }) {
             size="lg"
             className="w-full sm:w-auto"
             onClick={onPurchaseClick}
-            disabled={isLoading}
+            disabled={isLoading || !isLoggedIn}
           >
-            {isLoading ? "Processing..." : "Purchase Now"}
+            {isLoading
+              ? "Processing..."
+              : isLoggedIn
+                ? "Purchase Now"
+                : "Login to Purchase"}
           </Button>
         </CardFooter>
       </Card>
