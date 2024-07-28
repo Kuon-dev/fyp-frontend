@@ -30,6 +30,7 @@ import {
   Line,
   LineChart,
 } from "recharts";
+import { ScrollArea } from "@/components/ui/scroll-area";
 //import { ClientOnly } from "remix-utils/client-only";
 
 interface SalesDataPoint {
@@ -151,17 +152,18 @@ const ActiveSellerComponent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="mb-8 bg-muted/40">
-        <CardContent className="pt-6 flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </CardContent>
+      <Card className="mb-6 bg-muted/40 h-[90vh] flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin" />
       </Card>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive">
+      <Alert
+        variant="destructive"
+        className="h-[90vh] flex items-center justify-center"
+      >
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
@@ -180,34 +182,28 @@ const ActiveSellerComponent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="mb-8 bg-muted/40">
+    <div className="space-y-6 h-[80vh] overflow-y-hidden">
+      <Card className="mb-6 bg-muted/40">
         <CardHeader>
-          <CardTitle>Welcome, Verified Seller!</CardTitle>
+          <CardTitle className="text-2xl">Welcome, Verified Seller!</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">
-            Congratulations! Your seller account is now active. You can start
-            listing your code snippets and earning on the Kortex platform.
-          </p>
           <p>
-            Use the navigation menu to access your seller dashboard, manage your
-            listings, and track your earnings.
+            Your seller account is active. Start listing your code snippets and
+            track your earnings here. Use the navigation menu to manage your
+            listings and monitor your performance.
           </p>
         </CardContent>
       </Card>
 
       {dashboardData && (
-        <>
-          <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+          <Card className="h-[calc(90vh-20rem)]">
             <CardHeader>
-              <CardTitle>Sales Overview</CardTitle>
+              <CardTitle className="text-xl">Sales Overview</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={chartConfig}
-                className="min-h-[300px] w-full"
-              >
+            <CardContent className="h-full">
+              <ChartContainer config={chartConfig} className="w-full h-full">
                 <LineChart data={dashboardData.salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
@@ -218,22 +214,22 @@ const ActiveSellerComponent: React.FC = () => {
                     tickFormatter={(value) =>
                       new Date(value).toLocaleDateString()
                     }
-                    // Remove defaultProps usage
                     height={50}
                     interval="preserveStartEnd"
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis
                     yAxisId="left"
-                    // Remove defaultProps usage
                     width={60}
                     tickFormatter={(value) => `$${value}`}
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
-                    // Remove defaultProps usage
                     width={60}
                     tickFormatter={(value) => value.toString()}
+                    tick={{ fontSize: 12 }}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
@@ -242,39 +238,45 @@ const ActiveSellerComponent: React.FC = () => {
                     type="monotone"
                     dataKey="revenue"
                     stroke="var(--color-revenue)"
+                    strokeWidth={2}
                   />
                   <Line
                     yAxisId="right"
                     type="monotone"
                     dataKey="salesCount"
                     stroke="var(--color-salesCount)"
+                    strokeWidth={2}
                   />
                 </LineChart>
               </ChartContainer>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Reviews</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dashboardData.recentReviews.map((review) => (
-                <div key={review.id} className="mb-4 p-4 border rounded">
-                  <h4 className="font-semibold">{review.repoName}</h4>
-                  <p className="text-sm text-gray-500">
-                    By {review.userName} on{" "}
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </p>
-                  <p className="mt-2">{review.content}</p>
-                  <p className="mt-1 text-yellow-500">
-                    Rating: {review.rating}/5
-                  </p>
+          <Card className="h-[calc(90vh-20rem)] overflow-hidden">
+            <ScrollArea className="h-full">
+              <CardHeader>
+                <CardTitle className="text-xl">Recent Reviews</CardTitle>
+              </CardHeader>
+              <CardContent className="h-full overflow-hidden">
+                <div>
+                  {dashboardData.recentReviews.map((review) => (
+                    <div key={review.id} className="mb-4 p-4 border rounded">
+                      <h4 className="font-semibold">{review.repoName}</h4>
+                      <p className="text-sm text-gray-500">
+                        By {review.userName} on{" "}
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="mt-2">{review.content}</p>
+                      <p className="mt-1 text-yellow-500">
+                        Rating: {review.rating}/5
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </CardContent>
+              </CardContent>
+            </ScrollArea>
           </Card>
-        </>
+        </div>
       )}
     </div>
   );

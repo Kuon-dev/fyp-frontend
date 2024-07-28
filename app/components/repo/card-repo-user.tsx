@@ -17,16 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -35,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Repo {
@@ -56,7 +46,6 @@ export interface Repo {
 
 interface RepoCardProps {
   repo: Repo;
-  onDelete?: (id: string) => void;
 }
 
 interface IframeRendererProps {
@@ -106,7 +95,6 @@ const IframeRenderer: React.FC<IframeRendererProps> = React.memo(
       const processCode = async () => {
         setIsProcessing(true);
         try {
-          // Your existing code processing logic here
           const codeWithoutImports = removeImports(sourceJs);
           const [extractedName, hasRender, codeWithoutRender] =
             extractComponentName(codeWithoutImports);
@@ -219,31 +207,27 @@ const IframeRenderer: React.FC<IframeRendererProps> = React.memo(
 
 IframeRenderer.displayName = "IframeRenderer";
 
-const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<boolean>(false);
+const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo }) => {
   const [isFullscreenOpen, setIsFullscreenOpen] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const handleDelete = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/v1/repo/${repo.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+  const handleDownload = useCallback((content: string, fileName: string) => {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete repository");
-      }
-
-      toast.success("Repository deleted successfully");
-      onDelete?.(repo.id);
-      setIsDeleteAlertOpen(false);
-      navigate("/app/user/repos");
-    } catch (error) {
-      console.error("Error deleting repo:", error);
-      toast.error("Failed to delete repository");
-    }
-  }, [repo.id, onDelete, navigate]);
+  const handleDownloadSourceCode = useCallback(() => {
+    handleDownload(repo.sourceJs, `${repo.name}.js`);
+    handleDownload(repo.sourceCss, `${repo.name}.css`);
+    toast.success("Source code downloaded successfully");
+  }, [repo, handleDownload]);
 
   return (
     <Card className="w-full h-full">
@@ -262,22 +246,6 @@ const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{repo.language}</Badge>
             <Badge variant="outline">${repo.price}</Badge>
-            <Badge
-              variant={repo.visibility === "public" ? "default" : "secondary"}
-            >
-              {repo.visibility}
-            </Badge>
-            <Badge
-              variant={
-                repo.status === "active"
-                  ? "success"
-                  : repo.status === "pending"
-                    ? "warning"
-                    : "destructive"
-              }
-            >
-              {repo.status === "active" ? "Published" : "Not Published"}
-            </Badge>
           </div>
           <div className="flex-grow h-full w-full">
             <IframeRenderer
@@ -301,31 +269,14 @@ const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
                   Edit Repo
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setIsDeleteAlertOpen(true)}>
-                Delete Repo
+              <DropdownMenuItem onSelect={handleDownloadSourceCode}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Source Code
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
-
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete this repo?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              repository and remove all associated data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
         <DialogContent className="max-w-full h-full m-0 p-0">
