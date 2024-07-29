@@ -225,20 +225,46 @@ export function RepoForm({ defaultValues }: RepoFormProps) {
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price</FormLabel>
+              <FormLabel>Price (MYR)</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   onChange={(e) => {
-                    if (e.target.value === "") e.target.value = "0";
-                    else if (e.target.value.startsWith("0"))
-                      e.target.value = e.target.value.slice(1);
-                    field.onChange(parseInt(e.target.value));
+                    let value = e.target.value.replace(/[^0-9.]/g, "");
+
+                    // Ensure only one decimal point
+                    const decimalPoints = value.match(/\./g) || [];
+                    if (decimalPoints.length > 1) {
+                      value = value.slice(0, value.lastIndexOf("."));
+                    }
+
+                    // Limit to two decimal places
+                    const parts = value.split(".");
+                    if (parts.length > 1) {
+                      parts[1] = parts[1].slice(0, 2);
+                      value = parts.join(".");
+                    }
+
+                    // Update the input value
+                    e.target.value = value;
+
+                    // Convert to cents for internal storage
+                    const numericValue = Math.round(parseFloat(value) * 100);
+                    field.onChange(isNaN(numericValue) ? 0 : numericValue);
                   }}
-                  placeholder="Enter project price"
+                  value={
+                    field.value !== undefined
+                      ? (field.value / 100).toFixed(2)
+                      : ""
+                  }
+                  placeholder="0.00"
                 />
               </FormControl>
+              <FormDescription>
+                Enter the price in MYR. Use 0.00 for free repositories.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
