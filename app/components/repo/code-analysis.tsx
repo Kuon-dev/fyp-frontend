@@ -193,7 +193,7 @@ const CodeAnalysis: React.FC<CodeAnalysisProps> = ({
                 <div className="flex items-center justify-center bg-primary/10 rounded-lg p-4">
                   <Star className="h-10 w-10 text-primary mr-2" />
                   <span className="text-5xl font-bold text-primary">
-                    {overallScore}/10
+                    {overallScore}/100
                   </span>
                 </div>
                 <p className="mt-4 text-center text-sm text-muted-foreground">
@@ -214,7 +214,7 @@ const CodeAnalysis: React.FC<CodeAnalysisProps> = ({
                         <span className="text-4xl font-bold">
                           {securityScore}
                         </span>
-                        <span className="text-muted-foreground">/ 10</span>
+                        <span className="text-muted-foreground">/ 100</span>
                       </div>
                     </CardDescription>
                   </div>
@@ -232,7 +232,7 @@ const CodeAnalysis: React.FC<CodeAnalysisProps> = ({
                         <span className="text-4xl font-bold">
                           {maintainabilityScore}
                         </span>
-                        <span className="text-muted-foreground">/ 10</span>
+                        <span className="text-muted-foreground">/ 100</span>
                       </div>
                     </CardDescription>
                   </div>
@@ -250,7 +250,7 @@ const CodeAnalysis: React.FC<CodeAnalysisProps> = ({
                         <span className="text-4xl font-bold">
                           {readabilityScore}
                         </span>
-                        <span className="text-muted-foreground">/ 10</span>
+                        <span className="text-muted-foreground">/ 100</span>
                       </div>
                     </CardDescription>
                   </div>

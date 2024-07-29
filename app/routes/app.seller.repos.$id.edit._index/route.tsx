@@ -2,6 +2,17 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { injectCSS, injectTailwind } from "@/integrations/monaco/inject-css";
 import { toast } from "sonner";
 import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -36,6 +47,15 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { setupLanguageService } from "@/integrations/monaco/native.utils";
 import { readStream } from "@/lib/utils";
@@ -43,6 +63,7 @@ import CodeAnalysis, {
   PrivateCodeCheckResult,
 } from "@/components/repo/code-analysis";
 import { CodeCheckProgressDialog } from "@/components/repo/code-check-progress";
+import { EditRepoForm } from "@/components/repo/edit-repo-form";
 
 monacoLoader.config({
   paths: {
@@ -162,6 +183,7 @@ export default function EditorLayout() {
   const [publishProgress, setPublishProgress] = useState<number>(0);
   const [codeCheckProgress, setCodeCheckProgress] = useState<number>(0);
   const [showPublishDialog, setShowPublishDialog] = useState<boolean>(false);
+  const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const [showCodeCheckDialog, setShowCodeCheckDialog] =
     useState<boolean>(false);
   const [showCodeAnalysis, setShowCodeAnalysis] = useState<boolean>(false);
@@ -176,6 +198,37 @@ export default function EditorLayout() {
   } = useMonacoStore();
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleUpdateRepo = async (data: Partial<Repo>) => {
+    setIsSaving(true);
+    try {
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/repo/${repo.id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update repository details");
+      }
+
+      toast.success("Repository details updated successfully");
+      setShowEditDialog(false);
+      // Optionally, you can refresh the page or update the local state here
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating repository details:", error);
+      toast.error("Failed to update repository details. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   useEffect(() => {
     const initializeEditor = () => {
@@ -340,36 +393,67 @@ export default function EditorLayout() {
               <TabsTrigger value="css">css</TabsTrigger>
             </TabsList>
             <EditorMenubar />
+            <Menubar>
+              <MenubarMenu>
+                <MenubarTrigger>Actions</MenubarTrigger>
+                <MenubarContent>
+                  <MenubarItem
+                    onClick={handleSave}
+                    disabled={isSaving || isPublishing || isCheckingCode}
+                  >
+                    Save
+                  </MenubarItem>
+                  <MenubarItem
+                    onClick={() => setShowPublishDialog(true)}
+                    disabled={
+                      isSaving ||
+                      isPublishing ||
+                      isCheckingCode ||
+                      repo.status === "active"
+                    }
+                  >
+                    Publish
+                  </MenubarItem>
+                  <MenubarSeparator />
+                  <MenubarItem
+                    onClick={() => setShowCodeCheckDialog(true)}
+                    disabled={isSaving || isPublishing || isCheckingCode}
+                  >
+                    Submit Code Check
+                  </MenubarItem>
+                  <MenubarItem
+                    onClick={() => setShowCodeAnalysis(true)}
+                    disabled={!codeAnalysis}
+                  >
+                    View Code Analysis
+                  </MenubarItem>
+                  <MenubarSeparator />
+                  <MenubarItem onClick={() => setShowEditDialog(true)}>
+                    Edit Details
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+            </Menubar>
 
-            <Button
-              onClick={handleSave}
-              disabled={isSaving || isPublishing || isCheckingCode}
-            >
-              Save
-            </Button>
-            <Button
-              onClick={() => setShowPublishDialog(true)}
-              disabled={
-                isSaving ||
-                isPublishing ||
-                isCheckingCode ||
-                repo.status === "active"
-              }
-            >
-              Publish
-            </Button>
-            <Button
-              onClick={() => setShowCodeCheckDialog(true)}
-              disabled={isSaving || isPublishing || isCheckingCode}
-            >
-              Submit Code Check
-            </Button>
-            <Button
-              onClick={() => setShowCodeAnalysis(true)}
-              disabled={!codeAnalysis}
-            >
-              View Code Analysis
-            </Button>
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Repository Details</DialogTitle>
+                  <DialogDescription>
+                    Update the details of your repository.
+                  </DialogDescription>
+                </DialogHeader>
+                <EditRepoForm repoId={repoId ?? ""} />
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowEditDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </LayoutHeader>
         <LayoutBody>

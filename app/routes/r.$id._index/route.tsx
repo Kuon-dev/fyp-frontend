@@ -2,18 +2,14 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { json, useLoaderData, useNavigate } from "@remix-run/react";
 import {
   SmartphoneIcon,
-  StarIcon,
   ComputerIcon,
   CopyIcon,
   FlipVerticalIcon,
-  MaximizeIcon,
   DollarSignIcon,
   TabletIcon,
   Code2,
   DollarSign,
   Clock,
-  Download,
-  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -323,10 +319,10 @@ const ResizablePanel: React.FC<ResizablePanelProps> = ({
   );
 };
 
-function Price({ repo }: { repo: RepoResponse }) {
+export function Price({ repo }: { repo: RepoResponse }) {
   const navigate = useNavigate();
   const { clientSecret, handlePurchase, isLoading } = useCheckoutStore();
-  const { isLoggedIn } = useUserStore();
+  const { isLoggedIn, user } = useUserStore();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -361,6 +357,11 @@ function Price({ repo }: { repo: RepoResponse }) {
     }
   };
 
+  const showPurchaseButton =
+    isLoggedIn &&
+    user?.user.role !== "ADMIN" &&
+    user?.user.role !== "MODERATOR";
+
   return (
     <div className="w-full mx-auto p-4">
       <Card className="w-full shadow-lg">
@@ -394,18 +395,16 @@ function Price({ repo }: { repo: RepoResponse }) {
           </div>
         </CardContent>
         <CardFooter className="flex justify-center pt-4">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto"
-            onClick={onPurchaseClick}
-            disabled={isLoading || !isLoggedIn}
-          >
-            {isLoading
-              ? "Processing..."
-              : isLoggedIn
-                ? "Purchase Now"
-                : "Login to Purchase"}
-          </Button>
+          {showPurchaseButton && (
+            <Button
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={onPurchaseClick}
+              disabled={isLoading}
+            >
+              {isLoading ? "Processing..." : "Purchase Now"}
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>

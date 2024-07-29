@@ -1,11 +1,27 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import { toast } from "sonner";
+import { showErrorToast } from "@/lib/handle-error";
 
 interface User {
   id: string;
   name?: string;
   avatar?: string;
+  profile: BackendProfile;
 }
+
+const UserCommentFlag = {
+  NONE: "NONE",
+  SPAM: "SPAM",
+  INAPPROPRIATE_LANGUAGE: "INAPPROPRIATE_LANGUAGE",
+  HARASSMENT: "HARASSMENT",
+  OFF_TOPIC: "OFF_TOPIC",
+  FALSE_INFORMATION: "FALSE_INFORMATION",
+  OTHER: "OTHER",
+} as const;
+
+type UserCommentFlagType =
+  (typeof UserCommentFlag)[keyof typeof UserCommentFlag];
 
 interface Review extends BackendReview {
   user?: User;
@@ -92,6 +108,29 @@ interface ReviewStore {
     reviewId: string,
     commentContent: string,
   ) => Promise<void>;
+  reportReview: (
+    repoId: string,
+    reviewId: string,
+    flag: UserCommentFlagType,
+  ) => Promise<void>;
+  reportComment: (
+    repoId: string,
+    reviewId: string,
+    commentId: string,
+    flag: UserCommentFlagType,
+  ) => Promise<void>;
+  updateReview: (
+    repoId: string,
+    reviewId: string,
+    content: string,
+    rating: number,
+  ) => Promise<void>;
+  updateComment: (
+    repoId: string,
+    reviewId: string,
+    commentId: string,
+    content: string,
+  ) => Promise<void>;
 }
 
 const useReviewStore = create<ReviewStore>()(
@@ -141,6 +180,7 @@ const useReviewStore = create<ReviewStore>()(
         );
         if (!response.ok) throw new Error("Failed to fetch reviews");
         const data: ReviewsPagination = await response.json();
+        console.log(data);
         set((state) => ({
           reviews:
             page === 1
@@ -232,6 +272,7 @@ const useReviewStore = create<ReviewStore>()(
         if (!response.ok) throw new Error("Failed to add review");
         await get().fetchReviews(repoId);
       } catch (error) {
+        showErrorToast(error);
         console.error("Error adding review:", error);
       }
     },
@@ -248,7 +289,86 @@ const useReviewStore = create<ReviewStore>()(
         // Fetch only the first page of comments after adding a new one
         await get().fetchComments(repoId, reviewId, 1);
       } catch (error) {
+        showErrorToast(error);
         console.error("Error adding comment:", error);
+      }
+    },
+    reportReview: async (repoId, reviewId, flag) => {
+      try {
+        const response = await fetch(
+          `${get().API_BASE_URL}/reviews/${reviewId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ flag }),
+            credentials: "include",
+          },
+        );
+        if (!response.ok) throw new Error("Failed to report review");
+        toast.success("Review reported successfully");
+        await get().fetchReviews(repoId);
+      } catch (error) {
+        console.error("Error reporting review:", error);
+        toast.error("Failed to report review");
+      }
+    },
+
+    reportComment: async (repoId, reviewId, commentId, flag) => {
+      try {
+        const response = await fetch(
+          `${get().API_BASE_URL}/comments/${commentId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ flag }),
+            credentials: "include",
+          },
+        );
+        if (!response.ok) throw new Error("Failed to report comment");
+        toast.success("Comment reported successfully");
+        await get().fetchComments(repoId, reviewId);
+      } catch (error) {
+        console.error("Error reporting comment:", error);
+        toast.error("Failed to report comment");
+      }
+    },
+    updateReview: async (repoId, reviewId, content, rating) => {
+      try {
+        const response = await fetch(
+          `${get().API_BASE_URL}/reviews/${reviewId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content, rating }),
+            credentials: "include",
+          },
+        );
+        if (!response.ok) throw new Error("Failed to update review");
+        toast.success("Review updated successfully");
+        await get().fetchReviews(repoId);
+      } catch (error) {
+        showErrorToast(error);
+        console.error("Error updating review:", error);
+      }
+    },
+
+    updateComment: async (repoId, reviewId, commentId, content) => {
+      try {
+        const response = await fetch(
+          `${get().API_BASE_URL}/comments/${commentId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content }),
+            credentials: "include",
+          },
+        );
+        if (!response.ok) throw new Error("Failed to update comment");
+        toast.success("Comment updated successfully");
+        await get().fetchComments(repoId, reviewId);
+      } catch (error) {
+        showErrorToast(error);
+        console.error("Error updating comment:", error);
       }
     },
   })),

@@ -36,7 +36,7 @@ import { showErrorToast } from "@/lib/handle-error";
 // Define a schema for the seller's balance
 const sellerBalanceSchema = z.object({
   balance: z.number(),
-  lastPayoutRequestDate: z.string(),
+  lastPayoutRequestDate: z.string().nullable(),
 });
 
 type SellerBalance = z.infer<typeof sellerBalanceSchema>;
@@ -121,6 +121,7 @@ export default function SellerPayoutRequestsPage() {
       const validatedData = sellerBalanceSchema.parse(data);
       setSellerBalance(validatedData);
     } catch (error) {
+      console.log(error);
       showErrorToast(error);
     }
   };

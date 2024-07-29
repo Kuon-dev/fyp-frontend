@@ -29,8 +29,32 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { showErrorToast } from "@/lib/handle-error";
+import { Checkbox } from "@radix-ui/react-checkbox";
 
 const MAX_TAGS = 5;
+
+const TAGS = [
+  "react",
+  "typescript",
+  "javascript",
+  "node.js",
+  "express",
+  "nextjs",
+  "vue",
+  "angular",
+  "svelte",
+  "graphql",
+  "rest-api",
+  "database",
+  "aws",
+  "docker",
+  "kubernetes",
+  "machine-learning",
+  "artificial-intelligence",
+  "data-science",
+  "web-development",
+  "mobile-development",
+];
 
 export const SearchFilterSchema = z.object({
   searchQuery: z.string().optional(),
@@ -58,14 +82,13 @@ interface SearchAndFilterProps {
 const LANGUAGES = [
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
-  { value: "python", label: "Python" },
-  { value: "java", label: "Java" },
-  { value: "csharp", label: "C#" },
 ];
 
 export default function SearchAndFilter({ onSearch }: SearchAndFilterProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [openTags, setOpenTags] = useState(false);
+  const [openLanguage, setOpenLanguage] = useState(false);
 
   const form = useForm<SearchFilterSchemaType>({
     resolver: zodResolver(SearchFilterSchema),
@@ -84,30 +107,8 @@ export default function SearchAndFilter({ onSearch }: SearchAndFilterProps) {
     watch,
     reset,
   } = form;
+
   const watchedTags = watch("tags");
-
-  const addTag = useCallback(
-    (tag: string) => {
-      if (
-        tag.trim() &&
-        !watchedTags.includes(tag.trim()) &&
-        watchedTags.length < MAX_TAGS
-      ) {
-        setValue("tags", [...watchedTags, tag.trim()]);
-      }
-    },
-    [watchedTags, setValue],
-  );
-
-  const removeTag = useCallback(
-    (tagToRemove: string) => {
-      setValue(
-        "tags",
-        watchedTags.filter((tag) => tag !== tagToRemove),
-      );
-    },
-    [watchedTags, setValue],
-  );
 
   const handleSearch = async (data: SearchFilterSchemaType) => {
     setIsLoading(true);
@@ -160,38 +161,112 @@ export default function SearchAndFilter({ onSearch }: SearchAndFilterProps) {
           )}
         />
 
-        <Controller
-          name="tags"
+        <FormField
           control={control}
+          name="tags"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tags</FormLabel>
               <FormControl>
-                <div>
-                  <Input
-                    placeholder="Enter tags and press Enter"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === ",") {
-                        e.preventDefault();
-                        addTag((e.target as HTMLInputElement).value);
-                        (e.target as HTMLInputElement).value = "";
-                      }
-                    }}
-                  />
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {field.value.map((tag, index) => (
-                      <Badge key={index} className="flex items-center gap-1">
-                        {tag}
-                        <X
-                          size={14}
-                          className="cursor-pointer"
-                          onClick={() => removeTag(tag)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                <Popover open={openTags} onOpenChange={setOpenTags}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openTags}
+                      className="w-full justify-between"
+                    >
+                      {field.value.length > 0
+                        ? `${field.value.length} tag${
+                            field.value.length > 1 ? "s" : ""
+                          } selected`
+                        : "Select tags"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search tags..." />
+                      <CommandList>
+                        <CommandEmpty>No tags found.</CommandEmpty>
+                        <CommandGroup>
+                          {TAGS.map((tag) => (
+                            <CommandItem
+                              key={tag}
+                              onSelect={() => {
+                                const currentTags = field.value || [];
+                                let updatedTags;
+                                if (currentTags.includes(tag)) {
+                                  updatedTags = currentTags.filter(
+                                    (t) => t !== tag,
+                                  );
+                                } else {
+                                  if (currentTags.length < MAX_TAGS) {
+                                    updatedTags = [...currentTags, tag];
+                                  } else {
+                                    showErrorToast(
+                                      `You can only add up to ${MAX_TAGS} tags`,
+                                    );
+                                    return;
+                                  }
+                                }
+                                setValue("tags", updatedTags, {
+                                  shouldValidate: true,
+                                });
+                              }}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  checked={(field.value || []).includes(tag)}
+                                  onCheckedChange={(checked) => {
+                                    const currentTags = field.value || [];
+                                    let updatedTags;
+                                    if (checked) {
+                                      if (currentTags.length < MAX_TAGS) {
+                                        updatedTags = [...currentTags, tag];
+                                      } else {
+                                        showErrorToast(
+                                          `You can only add up to ${MAX_TAGS} tags`,
+                                        );
+                                        return;
+                                      }
+                                    } else {
+                                      updatedTags = currentTags.filter(
+                                        (t) => t !== tag,
+                                      );
+                                    }
+                                    setValue("tags", updatedTags, {
+                                      shouldValidate: true,
+                                    });
+                                  }}
+                                />
+                                <span>{tag}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </FormControl>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {field.value.map((tag, index) => (
+                  <Badge key={index} className="flex items-center gap-1">
+                    {tag}
+                    <X
+                      size={14}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        const updatedTags = field.value.filter(
+                          (t) => t !== tag,
+                        );
+                        setValue("tags", updatedTags, { shouldValidate: true });
+                      }}
+                    />
+                  </Badge>
+                ))}
+              </div>
               <FormMessage>{errors.tags?.message}</FormMessage>
             </FormItem>
           )}
@@ -204,12 +279,12 @@ export default function SearchAndFilter({ onSearch }: SearchAndFilterProps) {
             <FormItem>
               <FormLabel>Language</FormLabel>
               <FormControl>
-                <Popover>
+                <Popover open={openLanguage} onOpenChange={setOpenLanguage}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
-                      aria-expanded={open}
+                      aria-expanded={openLanguage}
                       className="w-full justify-between"
                     >
                       {field.value
@@ -231,6 +306,7 @@ export default function SearchAndFilter({ onSearch }: SearchAndFilterProps) {
                               key={language.value}
                               onSelect={() => {
                                 setValue("language", language.value);
+                                setOpenLanguage(false);
                               }}
                             >
                               <Check

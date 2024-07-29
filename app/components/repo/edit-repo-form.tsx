@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -42,43 +42,72 @@ import {
 } from "@/components/ui/popover";
 import { ChevronsUpDown } from "lucide-react";
 
-interface RepoFormProps {
-  defaultValues?: Partial<NewRepoSchemaType>;
+interface RepoEditFormProps {
+  repoId: string;
 }
 
-export function RepoForm({ defaultValues }: RepoFormProps) {
+export function EditRepoForm({ repoId }: RepoEditFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const form = useForm<NewRepoSchemaType>({
     resolver: zodResolver(NewRepoSchema),
     defaultValues: {
-      name: defaultValues?.name || "",
-      description: defaultValues?.description || "",
-      language: defaultValues?.language || "",
-      tags: defaultValues?.tags || [],
-      price: defaultValues?.price || 0,
-      visibility: defaultValues?.visibility || "public",
+      name: "",
+      description: "",
+      language: "",
+      tags: [],
+      price: 0,
+      visibility: "public",
     },
   });
+
+  useEffect(() => {
+    const fetchRepoData = async () => {
+      try {
+        const response = await fetch(
+          `${window.ENV.BACKEND_URL}/api/v1/repo/${repoId}`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch repo data");
+        }
+        const repoData = await response.json();
+        console.log(repoData);
+        form.reset(repoData.repo);
+      } catch (error) {
+        console.error("Error fetching repo data:", error);
+        toast("Failed to load repository data");
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchRepoData();
+  }, [repoId, form]);
 
   const onSubmit = async (data: NewRepoSchemaType) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${window.ENV.BACKEND_URL}/api/v1/repo`, {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/repo/${repoId}`,
+        {
+          credentials: "include",
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
       const res = await response.json();
       if (!response.ok) {
         throw new Error(res.message);
       }
-      toast("Project created successfully.");
-      window.location.reload();
+      toast("Project updated successfully.");
     } catch (error) {
       console.error(error);
       toast(`An error occurred. ${(error as Error).message}`);
@@ -86,6 +115,10 @@ export function RepoForm({ defaultValues }: RepoFormProps) {
       setIsLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Form {...form}>
@@ -268,7 +301,7 @@ export function RepoForm({ defaultValues }: RepoFormProps) {
           )}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Spinner /> : "Create Project"}
+          {isLoading ? <Spinner /> : "Update Project"}
         </Button>
       </form>
     </Form>

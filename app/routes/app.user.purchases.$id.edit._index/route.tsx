@@ -204,7 +204,7 @@ export default function EditorLayout() {
           codeCheckResult={codeAnalysis}
           repoName={repo.name}
           repoLanguage={repo.language}
-          isPublicView={false}
+          isPublicView={true}
         />
       )}
     </Layout>

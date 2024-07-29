@@ -21,7 +21,7 @@ export function BrandName() {
               to="/"
               className="font-cal text-muted-foreground hover:text-foreground text-lg"
             >
-              OpenStatus
+              Kortex
             </Link>
           </ContextMenuTrigger>
           <ContextMenuContent>

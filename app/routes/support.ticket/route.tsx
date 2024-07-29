@@ -24,6 +24,8 @@ import {
 import { useState } from "react";
 import { Spinner } from "@/components/custom/spinner";
 import { NewTicketSchema, createTicket } from "@/lib/fetcher/support";
+import { showErrorToast } from "@/lib/handle-error";
+import { toast } from "sonner";
 
 type SupportFormData = z.infer<typeof NewTicketSchema>;
 
@@ -43,13 +45,35 @@ function SupportCard() {
 
   const onSubmit = async (data: SupportFormData) => {
     setIsLoading(true);
-    await createTicket({
-      name: data.name,
-      email: data.email,
-      title: data.title,
-      message: data.message,
-      type: data.type,
-    });
+    try {
+      const response = await fetch(
+        `${window.ENV.BACKEND_URL}/api/v1/support/ticket`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            name: data.name,
+            title: data.title,
+            email: data.email,
+            type: data.type,
+            content: data.message,
+          }),
+        },
+      );
+
+      const res = await response.json();
+      if (!response.ok) {
+        throw new Error(res.data.message);
+      }
+      toast.success(
+        "Your ticket has been submitted. We'll get back to you shortly.",
+      );
+    } catch (error: unknown) {
+      showErrorToast(error);
+    }
     setIsLoading(false);
   };
 

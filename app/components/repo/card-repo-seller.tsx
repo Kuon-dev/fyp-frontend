@@ -250,7 +250,7 @@ const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onDelete }) => {
       <CardHeader className="w-full flex-stretch">
         <div className="flex flex-col items-start justify-between gap-4">
           <div className="space-y-1">
-            <CardTitle>{repo.name}</CardTitle>
+            <CardTitle className="line-clamp-1">{repo.name}</CardTitle>
             <CardDescription
               className={
                 repo.description ? "line-clamp-1" : "line-clamp-1 opacity-0"

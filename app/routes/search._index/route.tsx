@@ -33,6 +33,33 @@ import { z } from "zod";
 import { RepoCard } from "@/components/repo/card";
 import { Shell } from "@/components/landing/shell";
 import { Spinner } from "@/components/custom/spinner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+
+const MAX_TAGS = 5;
+
+const TAGS = [
+  "react",
+  "typescript",
+  "javascript",
+  "node.js",
+  "express",
+  "nextjs",
+  "vue",
+  "angular",
+  "svelte",
+  "graphql",
+  "rest-api",
+  "database",
+  "aws",
+  "docker",
+  "kubernetes",
+  "machine-learning",
+  "artificial-intelligence",
+  "data-science",
+  "web-development",
+  "mobile-development",
+];
 
 const SearchFilterSchema = z.object({
   searchQuery: z.string().optional(),
@@ -47,6 +74,7 @@ const SearchComponent: React.FC<{
 }> = ({ onSearch }) => {
   const { searchCriteria, setSearchCriteria } = useSearchStore();
   const [tagInput, setTagInput] = React.useState("");
+  const [openTags, setOpenTags] = React.useState(false);
 
   const form = useForm<SearchFilterSchemaType>({
     resolver: zodResolver(SearchFilterSchema),
@@ -59,18 +87,23 @@ const SearchComponent: React.FC<{
   };
 
   const addTag = (tag: string) => {
-    const trimmedTag = tag.trim();
+    const trimmedTag = tag.trim().toLowerCase();
     if (trimmedTag && !form.getValues("tags")?.includes(trimmedTag)) {
-      const updatedTags = [...(form.getValues("tags") || []), trimmedTag];
-      form.setValue("tags", updatedTags);
-      setSearchCriteria({ ...searchCriteria, tags: updatedTags });
+      const currentTags = form.getValues("tags") || [];
+      if (currentTags.length < MAX_TAGS) {
+        const updatedTags = [...currentTags, trimmedTag];
+        form.setValue("tags", updatedTags, { shouldValidate: true });
+        setSearchCriteria({ ...searchCriteria, tags: updatedTags });
+      } else {
+        toast(`You can only add up to ${MAX_TAGS} tags`);
+      }
     }
     setTagInput("");
   };
 
   const removeTag = (tag: string) => {
     const newTags = form.getValues("tags")?.filter((t) => t !== tag) || [];
-    form.setValue("tags", newTags);
+    form.setValue("tags", newTags, { shouldValidate: true });
     setSearchCriteria({ ...searchCriteria, tags: newTags });
   };
 
@@ -96,28 +129,63 @@ const SearchComponent: React.FC<{
             name="tags"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tags</FormLabel>
+                <FormLabel>Categories</FormLabel>
                 <FormControl>
-                  <div className="flex items-center">
-                    <Input
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === ",") {
-                          e.preventDefault();
-                          addTag(tagInput);
-                        }
-                      }}
-                      placeholder="Enter a tag and press Enter"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => addTag(tagInput)}
-                      className="ml-2"
-                    >
-                      Add Tag
-                    </Button>
-                  </div>
+                  <Popover open={openTags} onOpenChange={setOpenTags}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openTags}
+                        className="w-full justify-between"
+                      >
+                        {field.value && field.value.length > 0
+                          ? `${field.value.length} tag${field.value.length > 1 ? "s" : ""} selected`
+                          : "Select category"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search category..."
+                          value={tagInput}
+                          onValueChange={setTagInput}
+                        />
+                        <CommandList>
+                          <CommandEmpty>No tags found.</CommandEmpty>
+                          <CommandGroup>
+                            {TAGS.filter((tag) =>
+                              tag
+                                .toLowerCase()
+                                .includes(tagInput.toLowerCase()),
+                            ).map((tag) => (
+                              <CommandItem
+                                key={tag}
+                                onSelect={() => {
+                                  addTag(tag);
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    checked={(field.value || []).includes(tag)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        addTag(tag);
+                                      } else {
+                                        removeTag(tag);
+                                      }
+                                    }}
+                                  />
+                                  <span>{tag}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </FormControl>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {field.value?.map((tag, index) => (
@@ -226,9 +294,11 @@ const SearchAndFilter: React.FC = () => {
     appendResults,
     isLoading,
     hasMore,
+    totalResults,
   } = useSearchStore();
 
   const loadingRef = useRef(false);
+  const itemsPerPage = 10; // Define items per page constant
 
   const performSearch = useCallback(
     async (data: SearchFilterSchemaType, page: number = 1) => {
@@ -239,7 +309,7 @@ const SearchAndFilter: React.FC = () => {
       try {
         const queryParams = new URLSearchParams({
           page: page.toString(),
-          limit: "10",
+          limit: itemsPerPage.toString(),
         });
         if (data.searchQuery) queryParams.append("query", data.searchQuery);
         data.tags?.forEach((tag) => queryParams.append("tags", tag));
@@ -262,10 +332,7 @@ const SearchAndFilter: React.FC = () => {
           appendResults(res.data);
         }
         setTotalResults(res.meta.total);
-        setHasMore(
-          res.meta.total >
-            (page === 1 ? res.data.length : results.length + res.data.length),
-        );
+        setHasMore(res.meta.total > page * itemsPerPage);
         setCurrentPage(page);
       } catch (error) {
         showErrorToast(error);
@@ -280,8 +347,8 @@ const SearchAndFilter: React.FC = () => {
       setTotalResults,
       setHasMore,
       setCurrentPage,
-      results.length,
       appendResults,
+      itemsPerPage,
     ],
   );
 
@@ -292,10 +359,23 @@ const SearchAndFilter: React.FC = () => {
   }, []);
 
   const loadMoreData = useCallback(() => {
-    if (!isLoading && hasMore && !loadingRef.current) {
+    if (
+      !isLoading &&
+      hasMore &&
+      !loadingRef.current &&
+      results.length < totalResults
+    ) {
       performSearch(searchCriteria, currentPage + 1);
     }
-  }, [isLoading, hasMore, searchCriteria, currentPage, performSearch]);
+  }, [
+    isLoading,
+    hasMore,
+    searchCriteria,
+    currentPage,
+    performSearch,
+    results.length,
+    totalResults,
+  ]);
 
   const ResultsComponentWithInfiniteScroll: React.FC = () => {
     const observer = useRef<IntersectionObserver | null>(null);
@@ -304,13 +384,17 @@ const SearchAndFilter: React.FC = () => {
         if (isLoading) return;
         if (observer.current) observer.current.disconnect();
         observer.current = new IntersectionObserver((entries) => {
-          if (entries[0].isIntersecting && hasMore) {
+          if (
+            entries[0].isIntersecting &&
+            hasMore &&
+            results.length < totalResults
+          ) {
             loadMoreData();
           }
         });
         if (node) observer.current.observe(node);
       },
-      [isLoading, hasMore],
+      [isLoading, hasMore, results.length, totalResults],
     );
 
     return (
@@ -325,7 +409,11 @@ const SearchAndFilter: React.FC = () => {
               <RepoCard
                 repo={item}
                 key={item.id}
-                ref={index === results.length - 1 ? lastRepoElementRef : null}
+                ref={
+                  index === results.length - 1 && results.length < totalResults
+                    ? lastRepoElementRef
+                    : null
+                }
               />
             ))}
           </div>
