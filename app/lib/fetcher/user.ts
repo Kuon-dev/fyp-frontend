@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { showErrorToast } from "../handle-error";
 import { z } from "zod";
-import { Me } from "@/stores/dashboard-store";
+import { Me } from "@/stores/user-store";
 
 const backendURL =
   typeof window !== "undefined"

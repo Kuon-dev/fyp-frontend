@@ -53,10 +53,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
